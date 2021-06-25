@@ -1,0 +1,42 @@
+﻿{
+  "configurations": [
+    {
+      "name": "x64-Debug",
+      "generator": "Ninja",
+      "configurationType": "Debug",
+      "inheritEnvironments": [ "msvc_x64_x64" ],
+      "buildRoot": "${projectDir}\\out\\build\\${name}",
+      "installRoot": "${projectDir}\\out\\install\\${name}",
+      "cmakeCommandArgs": "",
+      "buildCommandArgs": "",
+      "ctestCommandArgs": "",
+      "variables": [
+        {
+          "name": "ENABLE_UI",
+          "value": "False",
+          "type": "BOOL"
+        },
+        {
+          "name": "DepsPath",
+          "value": "D:/win64",
+          "type": "FILEPATH"
+        },
+        {
+          "name": "DISABLE_UI",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "QTDIR",
+          "value": "C:/Qt/5.7/msvc2015_64",
+          "type": "FILEPATH"
+        },
+        {
+          "name": "CEF_ROOT_DIR",
+          "value": "D:/cef_binary_75.1.16+g16a67c4+chromium-75.0.3770.100_windows64_minimal",
+          "type": "FILEPATH"
+        }
+      ]
+    }
+  ]
+}
