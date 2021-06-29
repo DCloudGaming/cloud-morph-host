@@ -8,6 +8,8 @@
 #include <obs.h>
 
 #include <intrin.h>
+#include "MyPlugin.h"
+
 
 static const int cx = 800;
 static const int cy = 600;
@@ -96,8 +98,8 @@ static void CreateOBS(HWND hwnd)
 	ovi.output_width = rc.right;
 	ovi.output_height = rc.bottom;
 
-	if (obs_reset_video(&ovi) != 0)
-		throw "Couldn't initialize video";
+	//if (obs_reset_video(&ovi) != 0)
+	//	throw "Couldn't initialize video";
 }
 
 static DisplayContext CreateDisplay(HWND hwnd)
@@ -177,21 +179,22 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prevInstance, LPSTR cmdLine,
 		/* ------------------------------------------------------ */
 		/* load modules */
 		obs_load_all_modules();
+		obs_module_load();
 
 		/* ------------------------------------------------------ */
 		/* create source */
 		SourceContext source = obs_source_create(
-			"random", "some randon source", NULL, nullptr);
+			"image_source", "some randon source", NULL, nullptr);
 		if (!source)
 			throw "Couldn't create random test source";
 
 		/* ------------------------------------------------------ */
 		/* create filter */
-		SourceContext filter = obs_source_create(
-			"test_filter", "a nice green filter", NULL, nullptr);
-		if (!filter)
-			throw "Couldn't create test filter";
-		obs_source_filter_add(source, filter);
+		//SourceContext filter = obs_source_create(
+		//	"test_filter", "a nice green filter", NULL, nullptr);
+		//if (!filter)
+		//	throw "Couldn't create test filter";
+		//obs_source_filter_add(source, filter);
 
 		/* ------------------------------------------------------ */
 		/* create scene and add source to scene (twice) */
@@ -223,7 +226,7 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prevInstance, LPSTR cmdLine,
 
 	obs_shutdown();
 
-	blog(LOG_INFO, "Number of memory leaks: %ld", bnum_allocs());
+	//blog(LOG_INFO, "Number of memory leaks: %ld", bnum_allocs());
 	DestroyWindow(hwnd);
 
 	UNUSED_PARAMETER(prevInstance);

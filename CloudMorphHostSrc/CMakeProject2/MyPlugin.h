@@ -1,5 +1,6 @@
 #include <obs-module.h>
 #include <obs.h>
+#include <obs-source.h>
 #include <graphics/image-file.h>
 #include <util/platform.h>
 #include <util/dstr.h>
@@ -314,7 +315,7 @@ struct obs_source_info create_source_info()
 	struct obs_source_info image_source_info = {};
 	image_source_info.id = "image_source";
 	image_source_info.type = OBS_SOURCE_TYPE_INPUT;
-	image_source_info.output_flags = OBS_SOURCE_VIDEO | OBS_SOURCE_SRGB;
+	image_source_info.output_flags = OBS_SOURCE_VIDEO | OBS_SOURCE_SRGB | OBS_SOURCE_CUSTOM_DRAW;
 	image_source_info.get_name = image_source_get_name;
 	image_source_info.create = image_source_create;
 	image_source_info.destroy = image_source_destroy;
@@ -347,3 +348,7 @@ bool obs_module_load(void)
 	return true;
 }
 
+//void /*obs_source_video_render_pure(obs_source_t* source)
+//{
+//	source->info.video_render(source->context.data, NULL);
+//}*/
