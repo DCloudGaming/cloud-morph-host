@@ -4,9 +4,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include <tchar.h>
+//#include <libavformat/avformat.h>
+#include <libavcodec/avcodec.h>
+#include <avcodec.h>
 #include "CMakeProject2.h"
 #include "MyPlugin.h"
 #include "MyPlugin2.h"
+#include "ScreenRecorder.h"
 
 using namespace std;
 
@@ -31,6 +35,13 @@ public:
 
 int main()
 {
+
+	ScreenRecorder screen_record;
+
+	screen_record.openCamera();
+	screen_record.init_outputfile();
+	screen_record.CaptureVideoFrames();
+
 	obs_module_load();
 	//obs_load_all_modules();
 	//obs_module_load_2();
