@@ -1,0 +1,5 @@
+# ninja log v5
+0	8	0	clean	9992afb1f91dc381
+677	1256	6475763775860161	cms-encoding/cms-encoding.exe	87f209bee30772af
+0	676	6475763774208903	cms-encoding/CMakeFiles/cms-encoding.dir/cms-encoding.cpp.obj	e0094c46de5ffebd
+1	163	6475769092471917	build.ninja	a258d49aa4d2685f

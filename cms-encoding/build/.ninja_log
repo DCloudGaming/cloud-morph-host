@@ -1,0 +1,5 @@
+# ninja log v5
+21	447	6475769204830932	cms-encoding/CMakeFiles/cms-encoding.dir/cms-encoding.cpp.obj	e58c252e6bdc1a39
+2	483	6475769609926341	cms-encoding/CMakeFiles/cmsEncodingLib.dir/ScreenRecorder.cpp.obj	e5bf5bba623b7e64
+484	557	6475769610664118	cms-encoding/cmsEncodingLib.lib	622bd05683cb6c2e
+18	777	6475769608819033	cms-encoding/cms-encoding.exe	1327dff2cdd11bc4
