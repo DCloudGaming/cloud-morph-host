@@ -21,7 +21,7 @@ type initData struct {
 	CurAppID string `json:"cur_app_id"`
 }
 
-const embedPage string = "web/embed/embed.html"
+const embedPage string = "web/index.html"
 const addr string = ":8080"
 
 type Server struct {
@@ -45,7 +45,7 @@ func NewServerWithHTTPServerMux(cfg config.Config, r *mux.Router, svmux *http.Se
 	server := &Server{}
 
 	r.HandleFunc("/ws", server.WS)
-	r.HandleFunc("/embed",
+	r.HandleFunc("/",
 		func(w http.ResponseWriter, r *http.Request) {
 			tmpl, err := template.ParseFiles(embedPage)
 			if err != nil {
@@ -64,19 +64,8 @@ func NewServerWithHTTPServerMux(cfg config.Config, r *mux.Router, svmux *http.Se
 		IdleTimeout:  120 * time.Second,
 		Handler:      svmux,
 	}
-	log.Println("Embedded server")
 	server.capp = NewCloudService(cfg)
-	// appMeta := config.AppDiscoveryMeta{
-	// 	Addr:         cfg.InstanceAddr,
-	// 	AppName:      cfg.AppName,
-	// 	AppMode:      cfg.AppMode,
-	// 	HasChat:      cfg.HasChat,
-	// 	PageTitle:    cfg.PageTitle,
-	// 	ScreenWidth:  cfg.ScreenWidth,
-	// 	ScreenHeight: cfg.ScreenHeight,
-	// }
 	server.httpServer = httpServer
-	// server.appMeta = appMeta
 
 	return server
 }

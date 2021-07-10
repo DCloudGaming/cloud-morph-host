@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"log"
 	"sync"
-	"time"
 
 	"github.com/DCloudGaming/cloud-morph-host/pkg/common/config"
 	"github.com/DCloudGaming/cloud-morph-host/pkg/common/cws"
@@ -18,7 +17,8 @@ const (
 	// CollaborativeMode Multiple users share the same app session
 	CollaborativeMode = "collaborative"
 	// OnDemandMode Multiple users runs on a new available machine
-	OnDemandMode = "ondemand"
+	OnDemandMode    = "ondemand"
+	DefaultSTUNTURN = `[{"urls":"stun:stun.l.google.com:19302"}]`
 )
 
 var appEventTypes []string = []string{"MOUSEDOWN", "MOUSEUP", "MOUSEMOVE", "KEYDOWN", "KEYUP"}
@@ -65,22 +65,6 @@ type appModeHandler struct {
 	availableInstances []instance
 }
 
-// Heartbeat maintains connection to server
-func (c *Client) Heartbeat() {
-	// send heartbeat every 1s
-	timer := time.Tick(time.Second)
-
-	for range timer {
-		select {
-		case <-c.cancel:
-			log.Println("Close heartbeat")
-			return
-		default:
-		}
-		// c.Send({PType: "heartbeat"})
-	}
-}
-
 func (s *Service) AddClient(clientID string, ws *cws.Client) *Client {
 	client := NewServiceClient(clientID, ws, s.appEvents, s.ccApp.GetSSRC())
 	s.clients[clientID] = client
@@ -101,7 +85,7 @@ func NewServiceClient(clientID string, ws *cws.Client, appEvents chan Packet, ss
 	// The 1st packet
 	ws.Send(cws.WSPacket{
 		Type: "init",
-		Data: "",
+		Data: DefaultSTUNTURN,
 	}, nil)
 
 	return &Client{
@@ -148,26 +132,26 @@ func (c *Client) Handle() {
 	}()
 
 	// Audio Stream
-	wg.Add(1)
-	go func() {
-		defer func() {
-			if r := recover(); r != nil {
-				log.Println("Recovered. Maybe we :sent to Closed Channel", r)
-				wg.Done()
-			}
-		}()
+	// wg.Add(1)
+	// go func() {
+	// 	defer func() {
+	// 		if r := recover(); r != nil {
+	// 			log.Println("Recovered. Maybe we :sent to Closed Channel", r)
+	// 			wg.Done()
+	// 		}
+	// 	}()
 
-	loop:
-		for packet := range c.audioStream {
-			select {
-			case <-c.cancel:
-				break loop
-			case c.rtcConn.AudioChannel <- packet:
-			}
-		}
-		wg.Done()
-		log.Println("Closed Service Audio Channel")
-	}()
+	// loop:
+	// 	for packet := range c.audioStream {
+	// 		select {
+	// 		case <-c.cancel:
+	// 			break loop
+	// 		case c.rtcConn.AudioChannel <- packet:
+	// 		}
+	// 	}
+	// 	wg.Done()
+	// 	log.Println("Closed Service Audio Channel")
+	// }()
 
 	// Input stream is closed after StopClient . TODO: check if can close earlier
 	// wg.Add(1)
@@ -182,7 +166,6 @@ func (c *Client) Handle() {
 			}
 			c.appEvents <- convertWSPacket(wspacket)
 		}
-		// wg.Done()
 	}()
 	wg.Wait()
 	close(c.done)
@@ -292,31 +275,31 @@ func (s *Service) Handle() {
 					log.Println("Closing Video Audio")
 					// stop producing for client
 					delete(s.clients, id)
-					close(client.audioStream)
+					// close(client.audioStream)
 					close(client.videoStream)
 				case client.videoStream <- p:
 				}
 			}
 		}
 	}()
-	go func() {
-		defer func() {
-			if r := recover(); r != nil {
-				log.Println("Recovered when sent to closed Video Stream channel", r)
-			}
-		}()
-		// for p := range s.ccApp.AudioStream() {
-		// 	for _, client := range s.clients {
-		// 		select {
-		// 		// case <-client.cancel:
-		// 		// fmt.Println("Closing Audio")
-		// 		// stop producing for client
-		// 		// close(client.audioStream)
-		// 		case client.audioStream <- p:
-		// 		}
-		// 	}
-		// }
-	}()
+	// go func() {
+	// 	defer func() {
+	// 		if r := recover(); r != nil {
+	// 			log.Println("Recovered when sent to closed Video Stream channel", r)
+	// 		}
+	// 	}()
+	// 	for p := range s.ccApp.AudioStream() {
+	// 		for _, client := range s.clients {
+	// 			select {
+	// 			// case <-client.cancel:
+	// 			// fmt.Println("Closing Audio")
+	// 			// stop producing for client
+	// 			// close(client.audioStream)
+	// 			case client.audioStream <- p:
+	// 			}
+	// 		}
+	// 	}
+	// }()
 	s.ccApp.Handle()
 }
 

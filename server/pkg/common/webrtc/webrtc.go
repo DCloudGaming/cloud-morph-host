@@ -15,10 +15,10 @@ import (
 // TODO: double check if no need TURN server here
 var webrtcconfig = webrtc.Configuration{ICEServers: []webrtc.ICEServer{{URLs: []string{"stun:stun.l.google.com:19302"}}}}
 
-const audioRate = 48000
-const audioChannels = 2
-const audioMS = 20
-const audioFrame = audioRate * audioMS / 1000 * audioChannels
+// const audioRate = 48000
+// const audioChannels = 2
+// const audioMS = 20
+// const audioFrame = audioRate * audioMS / 1000 * audioChannels
 
 // InputDataPair represents input in input data channel
 // type InputDataPair struct {
@@ -35,7 +35,7 @@ type WebRTC struct {
 	isClosed    bool
 
 	ImageChannel chan *rtp.Packet
-	AudioChannel chan *rtp.Packet
+	// AudioChannel chan *rtp.Packet
 	InputChannel chan []byte
 
 	Done     bool
@@ -77,7 +77,7 @@ func NewWebRTC() *WebRTC {
 		ID: uuid.Must(uuid.NewV4()).String(),
 
 		ImageChannel: make(chan *rtp.Packet, 100),
-		AudioChannel: make(chan *rtp.Packet, 100),
+		// AudioChannel: make(chan *rtp.Packet, 100),
 		InputChannel: make(chan []byte, 100),
 	}
 	return w
@@ -265,7 +265,7 @@ func (w *WebRTC) StopClient() {
 	// webrtc is producer, so we close
 	// NOTE: ImageChannel is waiting for input. Close in writer is not correct for this
 	close(w.ImageChannel)
-	close(w.AudioChannel)
+	// close(w.AudioChannel)
 }
 
 // IsConnected comment
@@ -285,17 +285,17 @@ func (w *WebRTC) startStreaming(vp8Track *webrtc.TrackLocalStaticRTP, opusTrack 
 	}()
 
 	// send audio
-	go func() {
-		defer func() {
-			if r := recover(); r != nil {
-				fmt.Println("Recovered from err", r)
-			}
-		}()
+	// go func() {
+	// 	defer func() {
+	// 		if r := recover(); r != nil {
+	// 			fmt.Println("Recovered from err", r)
+	// 		}
+	// 	}()
 
-		for packet := range w.AudioChannel {
-			if writeErr := opusTrack.WriteRTP(packet); writeErr != nil {
-				panic(writeErr)
-			}
-		}
-	}()
+	// 	for packet := range w.AudioChannel {
+	// 		if writeErr := opusTrack.WriteRTP(packet); writeErr != nil {
+	// 			panic(writeErr)
+	// 		}
+	// 	}
+	// }()
 }
