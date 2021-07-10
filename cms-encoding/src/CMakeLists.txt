@@ -3,14 +3,15 @@
 #
 cmake_minimum_required (VERSION 3.8)
 
+project(src)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+
 set (CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_FLAGS "-D__STDC_CONSTANT_MACROS")
 #set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}\\..\\CMakeModules)
 set (DCMAKE_TOOLCHAIN_FILE "D:\\repos\\vcpkg\\scripts\\buildsystems\\vcpkg.cmake")
 set (CMAKE_TOOLCHAIN_FILE "D:\\repos\\vcpkg\\scripts\\buildsystems\\vcpkg.cmake")
 set (VCPKG_TARGET_TRIPLET "x86-windows")
-
-
 
 #find_path(AVCODEC_INCLUDE_DIR D:\\repos\\vcpkg\\installed\\x86-windows\\include\\libavcodec\\avcodec.h)
 find_path(AVCODEC_INCLUDE_DIR libavcodec/avcodec.h)
@@ -28,19 +29,22 @@ find_library(AVDEVICE_LIBRARY avdevice)
 find_path(AVFILTER_INCLUDE_DIR libavfilter/avfilter.h)
 find_library(AVFILTER_LIBRARY avfilter)
 
+find_path(SWSCALE_INCLUDE_DIR libswscale/swscale.h)
+find_library(SWSCALE_LIBRARY swscale)
+
 set(cmsEncoding_SOURCES 
-	ScreenRecorder.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/ScreenRecorder.cpp
 )
 
 set(cmsEncoding_HEADERS
-	ScreenRecorder.h
+	${CMAKE_CURRENT_SOURCE_DIR}/ScreenRecorder.h
 )
-add_library(cmsEncodingLib ${cmsEncoding_SOURCES} ${cmsEncoding_HEADERS})
-target_include_directories(cmsEncodingLib PRIVATE  ${AVCODEC_INCLUDE_DIR} ${AVFORMAT_INCLUDE_DIR} ${AVUTIL_INCLUDE_DIR} ${AVDEVICE_INCLUDE_DIR} ${AVFILTER_INCLUDE_DIR})
-target_link_libraries(cmsEncodingLib ${AVCODEC_LIBRARY} ${AVFORMAT_LIBRARY} ${AVUTIL_LIBRARY} ${AVDEVICE_LIBRARY} ${AVFILTER_LIBRARY})
+add_library(cmsEncodingLib  ${cmsEncoding_SOURCES} ${cmsEncoding_HEADERS} )
+target_include_directories(cmsEncodingLib PUBLIC ${SWSCALE_INCLUDE_DIR} ${AVCODEC_INCLUDE_DIR} ${AVFORMAT_INCLUDE_DIR} ${AVUTIL_INCLUDE_DIR} ${AVDEVICE_INCLUDE_DIR} ${AVFILTER_INCLUDE_DIR})
+target_link_libraries(cmsEncodingLib PUBLIC ${SWSCALE_LIBRARY} ${AVCODEC_LIBRARY} ${AVFORMAT_LIBRARY} ${AVUTIL_LIBRARY} ${AVDEVICE_LIBRARY} ${AVFILTER_LIBRARY})
 
 # Add source to this project's executable.
-add_executable (cms-encoding "cms-encoding.cpp" "cms-encoding.h" )
-target_include_directories(cms-encoding PRIVATE cmsEncodingLib ${AVCODEC_INCLUDE_DIR} ${AVFORMAT_INCLUDE_DIR} ${AVUTIL_INCLUDE_DIR} ${AVDEVICE_INCLUDE_DIR} ${AVFILTER_INCLUDE_DIR})
-target_link_libraries(cms-encoding ${AVCODEC_LIBRARY} ${AVFORMAT_LIBRARY} ${AVUTIL_LIBRARY} ${AVDEVICE_LIBRARY} ${AVFILTER_LIBRARY})
+add_executable (cms-encoding cms-encoding.cpp ${cmsEncoding_HEADERS})
+target_include_directories(cms-encoding PUBLIC ${SWSCALE_INCLUDE_DIR} ${AVCODEC_INCLUDE_DIR} ${AVFORMAT_INCLUDE_DIR} ${AVUTIL_INCLUDE_DIR} ${AVDEVICE_INCLUDE_DIR} ${AVFILTER_INCLUDE_DIR} )
+target_link_libraries(cms-encoding PUBLIC cmsEncodingLib ${SWSCALE_LIBRARY} ${AVCODEC_LIBRARY} ${AVFORMAT_LIBRARY} ${AVUTIL_LIBRARY} ${AVDEVICE_LIBRARY} ${AVFILTER_LIBRARY})
 # TODO: Add tests and install targets if needed.

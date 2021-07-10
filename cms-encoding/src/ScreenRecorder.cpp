@@ -43,6 +43,7 @@ ScreenRecorder::~ScreenRecorder()
 /* function to capture and store data in frames by allocating required memory and auto deallocating the memory.   */
 int ScreenRecorder::CaptureVideoFrames()
 {
+	cout << "Starting to capture frames " << std::endl;
 	int flag;
 	int frameFinished;//when you decode a single packet, you still don't have information enough to have a frame [depending on the type of codec, some of them //you do], when you decode a GROUP of packets that represents a frame, then you have a picture! that's why frameFinished will let //you know you decoded enough to have a frame.
 
@@ -108,6 +109,7 @@ int ScreenRecorder::CaptureVideoFrames()
 
 	while (av_read_frame(pAVFormatContext, pAVPacket) >= 0)
 	{
+		std::cout << "READ FRAME" << std::endl;
 		if (ii++ == no_frames)break;
 		if (pAVPacket->stream_index == VideoStreamIndx)
 		{
@@ -161,6 +163,14 @@ int ScreenRecorder::CaptureVideoFrames()
 
 }
 
+static int interrupt_cb(void *ctx) 
+{ 
+    AVFormatContext* formatContext = reinterpret_cast<AVFormatContext*>(ctx);
+// do something 
+    return 0;
+}
+
+
 /* establishing the connection between camera or screen through its respective folder */
 int ScreenRecorder::openCamera()
 {
@@ -170,26 +180,28 @@ int ScreenRecorder::openCamera()
 	pAVFormatContext = NULL;
 
 	pAVFormatContext = avformat_alloc_context();//Allocate an AVFormatContext.
-/*
-X11 video input device.
-To enable this input device during configuration you need libxcb installed on your system. It will be automatically detected during configuration.
-This device allows one to capture a region of an X11 display.
-refer : https://www.ffmpeg.org/ffmpeg-devices.html#x11grab
-*/
 /* current below is for screen recording. to connect with camera use v4l2 as a input parameter for av_find_input_format */
 	// pAVInputFormat = av_find_input_format("x11grab");
+	pAVFormatContext->interrupt_callback.callback = interrupt_cb;
+	pAVFormatContext->interrupt_callback.opaque = pAVFormatContext;
 
-	pAVInputFormat = av_find_input_format("dshow");
+	// pAVInputFormat = av_find_input_format("dshow");
+	pAVInputFormat = av_find_input_format("gdigrab");
 
-	value = avformat_open_input(&pAVFormatContext, ":0.0+10,250", pAVInputFormat, NULL);
+	// char* video_stream_url = "video=screen-capture-recorder";
+	char* video_stream_url = "desktop";
+	std::cout << video_stream_url << std::endl;
+
+	value = avformat_open_input(&pAVFormatContext, video_stream_url, pAVInputFormat, NULL);
 	if (value != 0)
 	{
-		cout << "\nerror in opening input device";
+		cout << "\nerror in opening input device" << endl;
 		exit(1);
 	}
 
 	/* set frame per second */
 	value = av_dict_set(&options, "framerate", "30", 0);
+
 	if (value < 0)
 	{
 		cout << "\nerror in setting dictionary value";
@@ -197,6 +209,7 @@ refer : https://www.ffmpeg.org/ffmpeg-devices.html#x11grab
 	}
 
 	value = av_dict_set(&options, "preset", "medium", 0);
+
 	if (value < 0)
 	{
 		cout << "\nerror in setting preset values";
@@ -245,6 +258,8 @@ refer : https://www.ffmpeg.org/ffmpeg-devices.html#x11grab
 		cout << "\nunable to open the av codec";
 		exit(1);
 	}
+		cout << "Finish open cam4 " << endl;
+
 }
 
 /* initialize the video output file and its properties  */
@@ -252,9 +267,11 @@ int ScreenRecorder::init_outputfile()
 {
 	outAVFormatContext = NULL;
 	value = 0;
-	output_file = "../media/output.mp4";
+	output_file = "./outputHieu.mp4";
 
 	avformat_alloc_output_context2(&outAVFormatContext, NULL, NULL, output_file);
+			cout << "Finish open cam5 " << endl;
+
 	if (!outAVFormatContext)
 	{
 		cout << "\nerror in allocating av format output context";
@@ -276,7 +293,16 @@ int ScreenRecorder::init_outputfile()
 		exit(1);
 	}
 
+	outAVCodec = avcodec_find_encoder(AV_CODEC_ID_MPEG4);
+
+	if (!outAVCodec)
+	{
+		cout << "\nerror in finding the av codecs. try again with correct codec";
+		exit(1);
+	}
+
 	outAVCodecContext = avcodec_alloc_context3(outAVCodec);
+
 	if (!outAVCodecContext)
 	{
 		cout << "\nerror in allocating the codec contexts";
@@ -301,12 +327,6 @@ int ScreenRecorder::init_outputfile()
 		av_opt_set(outAVCodecContext->priv_data, "preset", "slow", 0);
 	}
 
-	outAVCodec = avcodec_find_encoder(AV_CODEC_ID_MPEG4);
-	if (!outAVCodec)
-	{
-		cout << "\nerror in finding the av codecs. try again with correct codec";
-		exit(1);
-	}
 
 	/* Some container formats (like MP4) require global headers to be present
 	   Mark the encoder so that it behaves accordingly. */

@@ -10,6 +10,6 @@ set(CMAKE_GENERATOR "Ninja" CACHE INTERNAL "" FORCE)
 message("generator is set to ${CMAKE_GENERATOR}")
 
 # Include sub-projects.
-add_subdirectory ("cms-encoding")
+add_subdirectory ("src")
 
 #cmake ..  -DCMAKE_TOOLCHAIN_FILE=D:/repos/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_GENERATOR:INTERNAL=Ninja
