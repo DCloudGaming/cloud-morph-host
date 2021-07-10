@@ -59,6 +59,9 @@ int ScreenRecorder::CaptureVideoFrames()
 		cout << "\nunable to release the avframe resources";
 		exit(1);
 	}
+	pAVFrame->format = AV_PIX_FMT_YUV420P;
+	pAVFrame->width = 1920;
+	pAVFrame->height = 1080;
 
 	outFrame = av_frame_alloc();//Allocate an AVFrame and set its fields to default values.
 	if (!outFrame)
@@ -66,6 +69,9 @@ int ScreenRecorder::CaptureVideoFrames()
 		cout << "\nunable to release the avframe resources for outframe";
 		exit(1);
 	}
+	outFrame->format =  AV_PIX_FMT_YUV420P;
+	outFrame->width = 1920;
+	outFrame->height = 1080;
 
 	int video_outbuf_size;
 	int nbytes = av_image_get_buffer_size(outAVCodecContext->pix_fmt, outAVCodecContext->width, outAVCodecContext->height, 32);
@@ -78,12 +84,15 @@ int ScreenRecorder::CaptureVideoFrames()
 
 	// Setup the data pointers and linesizes based on the specified image parameters and the provided array.
 	value = av_image_fill_arrays(outFrame->data, outFrame->linesize, video_outbuf, AV_PIX_FMT_YUV420P, outAVCodecContext->width, outAVCodecContext->height, 1); // returns : the size in bytes required for src
+
 	if (value < 0)
 	{
 		cout << "\nerror in filling image array";
 	}
 
+
 	SwsContext* swsCtx_;
+			cout << "Finish open cam5 " << outAVCodecContext->pix_fmt << " " << pAVCodecContext->pix_fmt << endl;
 
 	// Allocate and return swsContext.
 	// a pointer to an allocated context, or NULL in case of error
@@ -113,7 +122,11 @@ int ScreenRecorder::CaptureVideoFrames()
 		if (ii++ == no_frames)break;
 		if (pAVPacket->stream_index == VideoStreamIndx)
 		{
+			cout << "Finish open cam6 " << endl;
+
 			value = avcodec_decode_video2(pAVCodecContext, pAVFrame, &frameFinished, pAVPacket);
+						cout << "Finish open cam6 " << endl;
+
 			if (value < 0)
 			{
 				cout << "unable to decode video";
@@ -121,15 +134,25 @@ int ScreenRecorder::CaptureVideoFrames()
 
 			if (frameFinished)// Frame successfully decoded :)
 			{
-				sws_scale(swsCtx_, pAVFrame->data, pAVFrame->linesize, 0, pAVCodecContext->height, outFrame->data, outFrame->linesize);
+							cout << "Finish open cam6 "  << pAVCodecContext->height  << " " << sizeof(pAVFrame->data) / sizeof(pAVFrame->data[0]) << " " <<  sizeof(pAVFrame->linesize) / sizeof(pAVFrame->linesize[0])  << endl;
+
+
+				// sws_scale(swsCtx_, pAVFrame->data, pAVFrame->linesize, 10000, pAVCodecContext->height, outFrame->data, outFrame->linesize);
+							cout << "Finish open cam6 " << endl;
+
 				av_init_packet(&outPacket);
+							cout << "Finish open cam7 " << sizeof(outFrame->data) / sizeof(outFrame->data[0]) << " " <<  sizeof(outFrame->linesize) / sizeof(outFrame->linesize[0])  << endl;
+
+
 				outPacket.data = NULL;    // packet data will be allocated by the encoder
 				outPacket.size = 0;
+			cout << "Finish open cam611 " << endl;
 
 				avcodec_encode_video2(outAVCodecContext, &outPacket, outFrame, &got_picture);
 
 				if (got_picture)
 				{
+					std::cout << "GOT PIC " << std::endl;
 					if (outPacket.pts != AV_NOPTS_VALUE)
 						outPacket.pts = av_rescale_q(outPacket.pts, video_st->codec->time_base, video_st->time_base);
 					if (outPacket.dts != AV_NOPTS_VALUE)
@@ -145,6 +168,7 @@ int ScreenRecorder::CaptureVideoFrames()
 				} // got_picture
 
 				av_packet_unref(&outPacket);
+							cout << "Finish open cam612 " << endl;
 			} // frameFinished
 
 		}
@@ -172,25 +196,19 @@ static int interrupt_cb(void *ctx)
 
 
 /* establishing the connection between camera or screen through its respective folder */
-int ScreenRecorder::openCamera()
+int ScreenRecorder::openCamera(char* capture_method, char* video_stream_url)
 {
 
 	value = 0;
 	options = NULL;
 	pAVFormatContext = NULL;
 
-	pAVFormatContext = avformat_alloc_context();//Allocate an AVFormatContext.
+	pAVFormatContext = avformat_alloc_context();
 /* current below is for screen recording. to connect with camera use v4l2 as a input parameter for av_find_input_format */
-	// pAVInputFormat = av_find_input_format("x11grab");
-	pAVFormatContext->interrupt_callback.callback = interrupt_cb;
-	pAVFormatContext->interrupt_callback.opaque = pAVFormatContext;
+	// pAVFormatContext->interrupt_callback.callback = interrupt_cb;
+	// pAVFormatContext->interrupt_callback.opaque = pAVFormatContext;
 
-	// pAVInputFormat = av_find_input_format("dshow");
-	pAVInputFormat = av_find_input_format("gdigrab");
-
-	// char* video_stream_url = "video=screen-capture-recorder";
-	char* video_stream_url = "desktop";
-	std::cout << video_stream_url << std::endl;
+	pAVInputFormat = av_find_input_format(capture_method);
 
 	value = avformat_open_input(&pAVFormatContext, video_stream_url, pAVInputFormat, NULL);
 	if (value != 0)
@@ -244,6 +262,9 @@ int ScreenRecorder::openCamera()
 
 	// assign pAVFormatContext to VideoStreamIndx
 	pAVCodecContext = pAVFormatContext->streams[VideoStreamIndx]->codec;
+	pAVCodecContext->pix_fmt = AV_PIX_FMT_YUV420P;
+	pAVCodecContext->width = 1920;
+	pAVCodecContext->height = 1080;
 
 	pAVCodec = avcodec_find_decoder(pAVCodecContext->codec_id);
 	if (pAVCodec == NULL)
@@ -258,19 +279,17 @@ int ScreenRecorder::openCamera()
 		cout << "\nunable to open the av codec";
 		exit(1);
 	}
-		cout << "Finish open cam4 " << endl;
 
 }
 
 /* initialize the video output file and its properties  */
-int ScreenRecorder::init_outputfile()
+int ScreenRecorder::init_outstream()
 {
 	outAVFormatContext = NULL;
 	value = 0;
 	output_file = "./outputHieu.mp4";
 
 	avformat_alloc_output_context2(&outAVFormatContext, NULL, NULL, output_file);
-			cout << "Finish open cam5 " << endl;
 
 	if (!outAVFormatContext)
 	{
@@ -322,6 +341,118 @@ int ScreenRecorder::init_outputfile()
 	outAVCodecContext->time_base.num = 1;
 	outAVCodecContext->time_base.den = 30; // 15fps
 
+	std::cout << "OUTPUT FORMAT " << outAVCodecContext->pix_fmt << " " << AV_PIX_FMT_YUYV422 << std::endl;
+	if (codec_id == AV_CODEC_ID_H264)
+	{
+		av_opt_set(outAVCodecContext->priv_data, "preset", "slow", 0);
+	}
+
+
+	/* Some container formats (like MP4) require global headers to be present
+	   Mark the encoder so that it behaves accordingly. */
+
+	if (outAVFormatContext->oformat->flags & AVFMT_GLOBALHEADER)
+	{
+		outAVCodecContext->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
+	}
+
+	value = avcodec_open2(outAVCodecContext, outAVCodec, NULL);
+	if (value < 0)
+	{
+		cout << "\nerror in opening the avcodec";
+		exit(1);
+	}
+
+	/* create empty video file */
+	if (!(outAVFormatContext->flags & AVFMT_NOFILE))
+	{
+		if (avio_open2(&outAVFormatContext->pb, output_file, AVIO_FLAG_WRITE, NULL, NULL) < 0)
+		{
+			cout << "\nerror in creating the video file";
+			exit(1);
+		}
+	}
+
+	if (!outAVFormatContext->nb_streams)
+	{
+		cout << "\noutput file dose not contain any stream";
+		exit(1);
+	}
+
+	/* imp: mp4 container or some advanced container file required header information*/
+	value = avformat_write_header(outAVFormatContext, &options);
+	if (value < 0)
+	{
+		cout << "\nerror in writing the header context";
+		exit(1);
+	}
+
+	/*
+	// uncomment here to view the complete video file informations
+	cout<<"\n\nOutput file information :\n\n";
+	av_dump_format(outAVFormatContext , 0 ,output_file ,1);
+	*/
+}
+
+/* initialize the video output file and its properties  */
+int ScreenRecorder::init_outputfile(char* output_file)
+{
+	outAVFormatContext = NULL;
+	value = 0;
+
+	avformat_alloc_output_context2(&outAVFormatContext, NULL, NULL, output_file);
+
+	if (!outAVFormatContext)
+	{
+		cout << "\nerror in allocating av format output context";
+		exit(1);
+	}
+
+	/* Returns the output format in the list of registered output formats which best matches the provided parameters, or returns NULL if there is no match. */
+	output_format = av_guess_format(NULL, output_file, NULL);
+	if (!output_format)
+	{
+		cout << "\nerror in guessing the video format. try with correct format";
+		exit(1);
+	}
+
+	video_st = avformat_new_stream(outAVFormatContext, NULL);
+	if (!video_st)
+	{
+		cout << "\nerror in creating a av format new stream";
+		exit(1);
+	}
+
+	outAVCodec = avcodec_find_encoder(AV_CODEC_ID_MPEG4);
+
+	if (!outAVCodec)
+	{
+		cout << "\nerror in finding the av codecs. try again with correct codec";
+		exit(1);
+	}
+
+	outAVCodecContext = avcodec_alloc_context3(outAVCodec);
+
+	if (!outAVCodecContext)
+	{
+		cout << "\nerror in allocating the codec contexts";
+		exit(1);
+	}
+
+	/* set property of the video file */
+	outAVCodecContext = video_st->codec;
+	outAVCodecContext->codec_id = AV_CODEC_ID_MPEG4;// AV_CODEC_ID_MPEG4; // AV_CODEC_ID_H264 // AV_CODEC_ID_MPEG1VIDEO
+	outAVCodecContext->codec_type = AVMEDIA_TYPE_VIDEO;
+	outAVCodecContext->pix_fmt = AV_PIX_FMT_YUV420P;
+	outAVCodecContext->bit_rate = 400000; // 2500000
+	outAVCodecContext->width = 1920;
+	outAVCodecContext->height = 1080;
+	outAVCodecContext->gop_size = 3;
+	outAVCodecContext->max_b_frames = 2;
+	outAVCodecContext->time_base.num = 1;
+	outAVCodecContext->time_base.den = 30; // 15fps
+
+	std::cout << "OUTPUT FORMAT " << outAVCodecContext->pix_fmt << " " << AV_PIX_FMT_YUYV422 << std::endl;
 	if (codec_id == AV_CODEC_ID_H264)
 	{
 		av_opt_set(outAVCodecContext->priv_data, "preset", "slow", 0);

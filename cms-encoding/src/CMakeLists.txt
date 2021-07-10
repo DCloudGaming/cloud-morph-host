@@ -11,9 +11,11 @@ set(CMAKE_CXX_FLAGS "-D__STDC_CONSTANT_MACROS")
 #set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}\\..\\CMakeModules)
 set (DCMAKE_TOOLCHAIN_FILE "D:\\repos\\vcpkg\\scripts\\buildsystems\\vcpkg.cmake")
 set (CMAKE_TOOLCHAIN_FILE "D:\\repos\\vcpkg\\scripts\\buildsystems\\vcpkg.cmake")
-set (VCPKG_TARGET_TRIPLET "x86-windows")
+#set (VCPKG_TARGET_TRIPLET "x86-windows")
 
-#find_path(AVCODEC_INCLUDE_DIR D:\\repos\\vcpkg\\installed\\x86-windows\\include\\libavcodec\\avcodec.h)
+FIND_PACKAGE(Boost 1.61 COMPONENTS filesystem program_options iostreams timer REQUIRED)
+INCLUDE_DIRECTORIES ( ${Boost_INCLUDE_DIR} )
+
 find_path(AVCODEC_INCLUDE_DIR libavcodec/avcodec.h)
 find_library(AVCODEC_LIBRARY avcodec)
 #

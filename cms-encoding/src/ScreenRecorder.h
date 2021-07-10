@@ -90,8 +90,9 @@ public:
 	~ScreenRecorder();
 
 	/* function to initiate communication with display library */
-	int openCamera();
-	int init_outputfile();
+	int openCamera(char* capture_method, char* video_stream_url);
+	int init_outstream();
+	int init_outputfile(char* output_file);
 	int CaptureVideoFrames();
 
 };
