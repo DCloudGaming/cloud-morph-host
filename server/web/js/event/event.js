@@ -55,41 +55,25 @@ const event = (() => {
 })();
 
 // events
-const LATENCY_CHECK_REQUESTED = "latencyCheckRequested";
-const PING_REQUEST = "pingRequest";
-const PING_RESPONSE = "pingResponse";
-
-const GAME_ROOM_AVAILABLE = "gameRoomAvailable";
-const GAME_SAVED = "gameSaved";
-const GAME_LOADED = "gameLoaded";
-const GAME_PLAYER_IDX = "gamePlayerIndex";
-
-const CONNECTION_READY = "connectionReady";
-const CONNECTION_CLOSED = "connectionClosed";
-
-const CHAT = "chat";
-const NUM_PLAYER = "num_player";
-
+// WebRTC sign
 const MEDIA_STREAM_INITIALIZED = "mediaStreamInitialized";
 const MEDIA_STREAM_SDP_AVAILABLE = "mediaStreamSdpAvailable";
 const MEDIA_STREAM_CANDIDATE_ADD = "mediaStreamCandidateAdd";
 const MEDIA_STREAM_CANDIDATE_FLUSH = "mediaStreamCandidateFlush";
 const MEDIA_STREAM_READY = "mediaStreamReady";
+const PING_REQUEST = "pingRequest";
+const PING_RESPONSE = "pingResponse";
+
+const CONNECTION_READY = "connectionReady";
+const CONNECTION_CLOSED = "connectionClosed";
 
 const KEY_PRESSED = "keyPressed";
 const KEY_RELEASED = "keyReleased";
 const KEY_STATE_UPDATED = "keyStateUpdated";
-const KEYBOARD_TOGGLE_FILTER_MODE = "keyboardToggleFilterMode";
 const KEYBOARD_KEY_PRESSED = "keyboardKeyPressed";
-const AXIS_CHANGED = "axisChanged";
-const CONTROLLER_UPDATED = "controllerUpdated";
 
 const MOUSE_DOWN = "mouseDown";
 const MOUSE_UP = "mouseUp";
 const MOUSE_MOVE = "mouseMove";
 
-const SETTINGS_CHANGED = "settingsChanged";
-const SETTINGS_CLOSED = "settingsClosed";
-
-const UPDATE_APP_LIST = "updateapplist";
 const CLIENT_INIT = "clientInit";

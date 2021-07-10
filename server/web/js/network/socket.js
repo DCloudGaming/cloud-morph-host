@@ -58,7 +58,6 @@ const socket = (() => {
           event.pub(MEDIA_STREAM_INITIALIZED, { stunturn: data.data });
           break;
         case "offer":
-          // this is offer from worker
           event.pub(MEDIA_STREAM_SDP_AVAILABLE, { sdp: data.data });
           break;
         case "candidate":
@@ -67,24 +66,8 @@ const socket = (() => {
         case "heartbeat":
           event.pub(PING_RESPONSE);
           break;
-        case "checkLatency":
-          curPacketId = data.packet_id;
-          const addresses = data.data.split(",");
-          event.pub(LATENCY_CHECK_REQUESTED, {
-            packetId: curPacketId,
-            addresses: addresses,
-          });
-        case "CHAT":
-          event.pub(CHAT, { chatrow: data.data });
-          break;
-        case "NUMPLAYER":
-          event.pub(NUM_PLAYER, { numplayers: data.data });
-          break;
         case "INIT":
           event.pub(CLIENT_INIT, { data: data.data });
-          break;
-        case "UPDATEAPPLIST":
-          event.pub(UPDATE_APP_LIST, { data: data.data });
           break;
       }
     };
@@ -103,21 +86,10 @@ const socket = (() => {
       data: JSON.stringify(workers),
       packet_id: packetId,
     });
-  // const start = (appName, isMobile) =>
-  //   send({
-  //     id: "start",
-  //     data: JSON.stringify({
-  //       app_name: gameName,
-  //       is_mobile: isMobile,
-  //     }),
-  //   });
-  // const quit = (roomId) => send({"id": "quit", "data": "", "room_id": roomId});
 
   return {
     send: send,
     latency: latency,
-    // start: start,
     connect: connect,
-    // quit: quit,
   };
 })($, event, log);
