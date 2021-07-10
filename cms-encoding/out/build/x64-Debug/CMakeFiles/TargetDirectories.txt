@@ -1,6 +1,0 @@
-C:/Users/lth08/source/repos/cms-encoding/out/build/x64-Debug/CMakeFiles/edit_cache.dir
-C:/Users/lth08/source/repos/cms-encoding/out/build/x64-Debug/CMakeFiles/rebuild_cache.dir
-C:/Users/lth08/source/repos/cms-encoding/out/build/x64-Debug/cms-encoding/CMakeFiles/cmsEncodingLib.dir
-C:/Users/lth08/source/repos/cms-encoding/out/build/x64-Debug/cms-encoding/CMakeFiles/edit_cache.dir
-C:/Users/lth08/source/repos/cms-encoding/out/build/x64-Debug/cms-encoding/CMakeFiles/cms-encoding.dir
-C:/Users/lth08/source/repos/cms-encoding/out/build/x64-Debug/cms-encoding/CMakeFiles/rebuild_cache.dir
