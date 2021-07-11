@@ -1,7 +1,6 @@
 package cloudapp
 
 import (
-	"encoding/base64"
 	"encoding/json"
 	"log"
 	"sync"
@@ -14,22 +13,15 @@ import (
 )
 
 const (
-	// CollaborativeMode Multiple users share the same app session
-	CollaborativeMode = "collaborative"
-	// OnDemandMode Multiple users runs on a new available machine
-	OnDemandMode    = "ondemand"
 	DefaultSTUNTURN = `[{"urls":"stun:stun.l.google.com:19302"}]`
 )
 
 var appEventTypes []string = []string{"MOUSEDOWN", "MOUSEUP", "MOUSEMOVE", "KEYDOWN", "KEYUP"}
 
-var isStarted bool
-
 type Service struct {
-	clients        map[string]*Client
-	appModeHandler *appModeHandler
-	ccApp          CloudAppClient
-	config         config.Config
+	clients map[string]*Client
+	ccApp   CloudAppClient
+	config  config.Config
 	// communicate with cloud app
 	appEvents chan Packet
 }
@@ -41,7 +33,6 @@ type Client struct {
 	videoStream chan *rtp.Packet
 	audioStream chan *rtp.Packet
 	appEvents   chan Packet
-	// videoTrack   *webrtc.Track
 	// cancel to trigger cleaning up when client is disconnected
 	cancel chan struct{}
 	// done to notify if the client is done clean up
@@ -54,15 +45,6 @@ type AppHost struct {
 	// Host string `json:"host"`
 	Addr    string `json:"addr"`
 	AppName string `json:"app_name"`
-}
-
-type instance struct {
-	addr string
-}
-
-type appModeHandler struct {
-	appMode            string
-	availableInstances []instance
 }
 
 func (s *Service) AddClient(clientID string, ws *cws.Client) *Client {
@@ -171,9 +153,8 @@ func (c *Client) Handle() {
 	close(c.done)
 }
 
+// Route: Handshake to initialize WebRTC
 func (c *Client) Route(ssrc uint32) {
-	// Listen from video stream
-	// WebRTC
 	c.ws.Receive("initwebrtc", func(req cws.WSPacket) (resp cws.WSPacket) {
 		log.Println("Received a request to createOffer from browser", req)
 
@@ -253,9 +234,9 @@ func NewCloudService(cfg config.Config) *Service {
 	return s
 }
 
-func (s *Service) SendInput(packet Packet) {
-	s.ccApp.SendInput(packet)
-}
+// func (s *Service) SendInput(packet Packet) {
+// 	s.ccApp.SendInput(packet)
+// }
 
 func (s *Service) GetSSRC() uint32 {
 	return s.ccApp.GetSSRC()
@@ -301,29 +282,4 @@ func (s *Service) Handle() {
 	// 	}
 	// }()
 	s.ccApp.Handle()
-}
-
-// Encode encodes the input in base64
-// It can optionally zip the input before encoding
-func Encode(obj interface{}) string {
-	b, err := json.Marshal(obj)
-	if err != nil {
-		panic(err)
-	}
-
-	return base64.StdEncoding.EncodeToString(b)
-}
-
-// Decode decodes the input from base64
-// It can optionally unzip the input after decoding
-func Decode(in string, obj interface{}) {
-	b, err := base64.StdEncoding.DecodeString(in)
-	if err != nil {
-		panic(err)
-	}
-
-	err = json.Unmarshal(b, obj)
-	if err != nil {
-		panic(err)
-	}
 }

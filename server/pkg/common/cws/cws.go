@@ -1,3 +1,4 @@
+// Websocket library wrapper
 package cws
 
 import (

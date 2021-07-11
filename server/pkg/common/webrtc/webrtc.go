@@ -1,3 +1,4 @@
+// WebRTC library wrapper
 package webrtc
 
 import (

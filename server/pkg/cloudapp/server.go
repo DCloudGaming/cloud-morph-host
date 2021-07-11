@@ -15,8 +15,6 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-var upgrader = websocket.Upgrader{}
-
 type initData struct {
 	CurAppID string `json:"cur_app_id"`
 }
@@ -44,7 +42,6 @@ func NewServer(cfg config.Config) *Server {
 func NewServerWithHTTPServerMux(cfg config.Config, r *mux.Router, svmux *http.ServeMux) *Server {
 	server := &Server{}
 
-	r.HandleFunc("/ws", server.WS)
 	r.HandleFunc("/",
 		func(w http.ResponseWriter, r *http.Request) {
 			tmpl, err := template.ParseFiles(embedPage)
@@ -55,8 +52,8 @@ func NewServerWithHTTPServerMux(cfg config.Config, r *mux.Router, svmux *http.Se
 			tmpl.Execute(w, nil)
 		},
 	)
-	fmt.Println("handler", r)
-
+	// Websocket
+	r.HandleFunc("/ws", server.WS)
 	httpServer := &http.Server{
 		Addr:         addr,
 		ReadTimeout:  5 * time.Second,
@@ -77,13 +74,16 @@ func (o *Server) Handle() {
 
 func (s *Server) WS(w http.ResponseWriter, r *http.Request) {
 	log.Println("A user is connecting...")
-	// defer func() {
-	// 	if r := recover(); r != nil {
-	// 		log.Println("Warn: Something wrong. Recovered in ", r)
-	// 	}
-	// }()
+	defer func() {
+		if r := recover(); r != nil {
+			log.Println("Warn: Something wrong. Recovered in ", r)
+		}
+	}()
 
+	// upgrader to upgrade http connection to websocket connection
+	upgrader := websocket.Upgrader{}
 	upgrader.CheckOrigin = func(r *http.Request) bool {
+		// Check origin of upgrader
 		// TODO: can we be stricter?
 		return true
 	}
@@ -98,8 +98,7 @@ func (s *Server) WS(w http.ResponseWriter, r *http.Request) {
 	// Create websocket Client
 	wsClient := cws.NewClient(c)
 	clientID := wsClient.GetID()
-	// TODO: Update packet
-	// Add websocket client to app service
+	// Add new client game session to Cloud App service
 	serviceClient := s.capp.AddClient(clientID, wsClient)
 	serviceClient.Route(s.capp.GetSSRC())
 	log.Println("Initialized ServiceClient")

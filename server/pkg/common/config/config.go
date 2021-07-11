@@ -16,7 +16,6 @@ type Config struct {
 	ScreenHeight int    `yaml:"screenHeight"`
 	IsWindowMode *bool  `yaml:"isWindowMode"`
 	// Frontend plugin
-	HasChat   bool   `yaml:"hasChat"`
 	PageTitle string `yaml:"pageTitle"`
 }
 

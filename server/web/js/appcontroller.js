@@ -157,14 +157,7 @@
   event.sub(MEDIA_STREAM_CANDIDATE_FLUSH, () => rtcp.flushCandidate());
   event.sub(MEDIA_STREAM_READY, () => rtcp.start());
   event.sub(CONNECTION_READY, onConnectionReady);
-  //event.sub(NUM_PLAYER, ({ data }) => updateNumPlayers(data));
-  //event.sub(CLIENT_INIT, ({ data }) => {
-    //initApps(JSON.parse(data));
-  //});
-  //event.sub(UPDATE_APP_LIST, ({ data }) => {
-    //updateAppList(JSON.parse(data));
-  //});
-  // event.sub(CONNECTION_CLOSED, () => input.poll().disable());
+  event.sub(CONNECTION_CLOSED, () => input.poll().disable());
   event.sub(KEY_PRESSED, onKeyPress);
   event.sub(KEY_RELEASED, onKeyRelease);
   event.sub(MOUSE_MOVE, onMouseMove);
