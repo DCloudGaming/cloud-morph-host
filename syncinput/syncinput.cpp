@@ -382,7 +382,6 @@ int main(int argc, char *argv[])
         if ((recv_size = recv(server, buf, 1024, 0)) == SOCKET_ERROR)
         {
             puts("recv failed");
-            puts(recv_size);
             continue;
         }
         char *buffer = new char[recv_size];

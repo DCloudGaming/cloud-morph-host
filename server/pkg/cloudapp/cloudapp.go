@@ -335,6 +335,7 @@ func (c *ccImpl) SendInput(packet Packet) {
 
 func (c *ccImpl) simulateKey(jsonPayload string, keyState byte) {
 	if !c.isReady {
+		log.Println("Syncinput is not ready. Maybe the connection is not established")
 		return
 	}
 
