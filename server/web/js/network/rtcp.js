@@ -23,7 +23,7 @@ const rtcp = (() => {
     mediaStream = new MediaStream();
 
     // input channel, ordered + reliable, id 0
-    // inputChannel = connection.createDataChannel('a', {ordered: true, negotiated: true, id: 0,});
+    inputChannel = connection.createDataChannel('a', {ordered: true, negotiated: true, id: 0,});
     // recv dataChannel from worker
     connection.ondatachannel = (e) => {
       log.debug(`[rtcp] ondatachannel: ${e.channel.label}`);

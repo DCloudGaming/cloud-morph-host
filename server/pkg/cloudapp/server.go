@@ -121,7 +121,7 @@ func (s *Server) initClientData(client *cws.Client) {
 	if err != nil {
 		return
 	}
-	fmt.Println("Send Client INIT")
+	fmt.Println("Send Initialization Package")
 	client.Send(cws.WSPacket{
 		Type: "INIT",
 		Data: string(jsonData),

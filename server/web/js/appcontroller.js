@@ -3,16 +3,9 @@
  * @version 1
  */
 (() => {
-  const pingIntervalMs = 2000; // 2 secs
   var isFullscreen = false;
 
-  // TODO: move to chat.js // Non core logic
-  const appBody = document.getElementById("app-body");
-  const appd = document.getElementById("app");
-  const appTitle = document.getElementById("app-title");
   const appScreen = document.getElementById("app-screen");
-
-  var offerst;
 
   const onConnectionReady = () => {
     start();

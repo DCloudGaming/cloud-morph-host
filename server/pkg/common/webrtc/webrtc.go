@@ -143,6 +143,7 @@ func (w *WebRTC) StartClient(isMobile bool, iceCB OnIceCallback, ssrc uint32) (s
 	// Register text message handling
 	inputTrack.OnMessage(func(msg webrtc.DataChannelMessage) {
 		// TODO: Can add recover here
+		fmt.Println("received message")
 		w.InputChannel <- msg.Data
 	})
 
@@ -243,11 +244,11 @@ func (w *WebRTC) AddCandidate(candidate string) error {
 
 // StopClient disconnect
 func (w *WebRTC) StopClient() {
-	defer func() {
-		if r := recover(); r != nil {
-			fmt.Println("Recovered from err. Maybe we closed a closed channel", r)
-		}
-	}()
+	// defer func() {
+	// 	if r := recover(); r != nil {
+	// 		fmt.Println("Recovered from err. Maybe we closed a closed channel", r)
+	// 	}
+	// }()
 	// if stopped, bypass
 	// if w.isConnected == false {
 	// 	return

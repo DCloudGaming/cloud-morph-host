@@ -91,5 +91,6 @@ const socket = (() => {
     send: send,
     latency: latency,
     connect: connect,
+    // quit: quit,
   };
 })($, event, log);

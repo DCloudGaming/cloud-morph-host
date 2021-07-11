@@ -2,6 +2,7 @@ package cloudapp
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"sync"
 
@@ -136,13 +137,14 @@ func (c *Client) Handle() {
 	// }()
 
 	// Input stream is closed after StopClient . TODO: check if can close earlier
-	// wg.Add(1)
+	wg.Add(1)
 	go func() {
 		// Data channel input
 		for rawInput := range c.rtcConn.InputChannel {
 			// TODO: No dynamic allocation
 			wspacket := cws.WSPacket{}
 			err := json.Unmarshal(rawInput, &wspacket)
+			fmt.Println("pushing to appEvents")
 			if err != nil {
 				log.Println(err)
 			}
@@ -234,9 +236,9 @@ func NewCloudService(cfg config.Config) *Service {
 	return s
 }
 
-// func (s *Service) SendInput(packet Packet) {
-// 	s.ccApp.SendInput(packet)
-// }
+func (s *Service) SendInput(packet Packet) {
+	s.ccApp.SendInput(packet)
+}
 
 func (s *Service) GetSSRC() uint32 {
 	return s.ccApp.GetSSRC()
