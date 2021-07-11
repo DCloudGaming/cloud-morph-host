@@ -212,7 +212,6 @@ func (w *WebRTC) SetRemoteSDP(remoteSDP string) error {
 		return err
 	}
 
-	fmt.Println("Wconnection", w.connection)
 	err = w.connection.SetRemoteDescription(answer)
 	if err != nil {
 		log.Println("Set remote description from peer failed")
