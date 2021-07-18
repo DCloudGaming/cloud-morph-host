@@ -6,6 +6,7 @@
 #include <pthread.h>
 #include <ctime>
 #include <chrono>
+
 using namespace std;
 
 int screenWidth, screenHeight;
@@ -29,41 +30,21 @@ int clientConnect()
 
     memset(&addr, 0, sizeof(addr));
     WSAStartup(MAKEWORD(2, 0), &wsa_data);
-    int server = socket(AF_INET, SOCK_STREAM, 0);
+    int server = socket(
+        AF_INET, // IPV4
+        SOCK_STREAM, // TCP
+        0 // Protocol
+    );
 
     addr.sin_family = AF_INET;
     addr.sin_port = htons(9090);
-    if (strcmp(dockerHost, "host.docker.internal") == 0)
-    {
-	char ip[100];
-	struct hostent *he;
-	struct in_addr **addr_list;
-	if ( (he = gethostbyname( dockerHost ) ) == NULL) 
-	{
-		//gethostbyname failed
-		printf("gethostbyname failed : %d" , WSAGetLastError());
-		return 1;
-	}
-	//Cast the h_addr_list to in_addr , since h_addr_list also has the ip address in long format only
-	addr_list = (struct in_addr **) he->h_addr_list;
-	for(int i = 0; addr_list[i] != NULL; i++) 
-	{
-		//Return the first one;
-		strcpy(ip , inet_ntoa(*addr_list[i]) );
-	}
+    addr.sin_addr.s_addr = inet_addr("127.0.0.1");
 
-        cout << "using host docker internal" << endl;
-        cout << "ip from hostname: " << ip << endl;
-        addr.sin_addr.s_addr = inet_addr(ip);
+    cout << "Connecting to server!" << endl << addr.sin_port << endl << addr.sin_family << endl; 
+    int iResult = connect(server, reinterpret_cast<SOCKADDR *>(&addr), sizeof(addr));
+    if (iResult < 0) {
+        cout << "Cannot connect to server: " << iResult << endl;
     }
-    else
-    {
-        cout << "using any local" << endl;
-        addr.sin_addr.s_addr = INADDR_ANY;
-    }
-
-    cout << "Connecting to server!" << endl;
-    connect(server, reinterpret_cast<SOCKADDR *>(&addr), sizeof(addr));
     cout << "Connected to server!" << endl;
     return server;
 }
@@ -354,9 +335,8 @@ int main(int argc, char *argv[])
     getDesktopResolution(screenWidth, screenHeight);
     cout << "width " << screenWidth << " "
          << "height " << screenHeight << endl;
-    cout << "Docker host" << dockerHost << endl;
 
-    formatWindow(hwnd);
+    // formatWindow(hwnd);
 
     // setup socket watcher. TODO: How to check if a socket pipe is broken?
     done = false;
@@ -381,7 +361,8 @@ int main(int argc, char *argv[])
         //Receive a reply from the server
         if ((recv_size = recv(server, buf, 1024, 0)) == SOCKET_ERROR)
         {
-            puts("recv failed");
+            cout << recv_size << endl;
+            // puts(to_string(recv_size));
             continue;
         }
         char *buffer = new char[recv_size];

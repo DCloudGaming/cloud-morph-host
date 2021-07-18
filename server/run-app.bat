@@ -1,4 +1,6 @@
 set /P PATH=PATH
+taskkill /IM "ffmpeg.exe" /F
+taskkill /IM "notepad.exe" /F
 START /b notepad
 @echo off 
 g++ ../syncinput/syncinput.cpp -o ../syncinput/syncinput.exe -lws2_32 -lpthread -static

@@ -72,7 +72,7 @@ func NewCloudAppClient(cfg config.Config, inputEvents chan Packet) *ccImpl {
 	}
 
 	// port 9090 is to communicate with syncinput
-	la, err := net.ResolveTCPAddr("tcp4", ":9090")
+	la, err := net.ResolveTCPAddr("tcp4", "localhost:9090")
 	if err != nil {
 		panic(err)
 	}
@@ -102,7 +102,7 @@ func NewCloudAppClient(cfg config.Config, inputEvents chan Packet) *ccImpl {
 	// c.listenAudioStream()
 	// log.Println("Launched Audio stream listener")
 	// Maintain input stream from server to Virtual Machine over websocket
-	go c.healthCheckVM()
+	// go c.healthCheckVM()
 	// NOTE: Why Websocket: because normal IPC cannot communicate cross OS.
 	// TODO: Remove Websocket because of overengineering, cross OS seems unreasonable. Using a proper IPC
 	go func() {
