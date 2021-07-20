@@ -102,7 +102,7 @@ func NewCloudAppClient(cfg config.Config, inputEvents chan Packet) *ccImpl {
 	// c.listenAudioStream()
 	// log.Println("Launched Audio stream listener")
 	// Maintain input stream from server to Virtual Machine over websocket
-	// go c.healthCheckVM()
+	go c.healthCheckVM()
 	// NOTE: Why Websocket: because normal IPC cannot communicate cross OS.
 	// TODO: Remove Websocket because of overengineering, cross OS seems unreasonable. Using a proper IPC
 	go func() {
@@ -319,13 +319,14 @@ func (c *ccImpl) listenVideoStream() {
 }
 
 func (c *ccImpl) SendInput(packet Packet) {
+	log.Println("sending", packet)
 	switch packet.Type {
 	case eventKeyUp:
 		c.simulateKey(packet.Data, 0)
 	case eventKeyDown:
 		c.simulateKey(packet.Data, 1)
-	case eventMouseMove:
-		c.simulateMouseEvent(packet.Data, 0)
+	// case eventMouseMove:
+	// 	c.simulateMouseEvent(packet.Data, 0)
 	case eventMouseDown:
 		c.simulateMouseEvent(packet.Data, 1)
 	case eventMouseUp:
