@@ -9,14 +9,21 @@ Func writeToBackgroundNotepad()
     Local $hWnd = WinWait("[CLASS:Notepad]", "", 10)
 	WinSetState ("[CLASS:Notepad]", "", @SW_MINIMIZE)
 
-    ; Wait for 5 seconds.
-    Sleep(5000)
+    ; Wait for 2 seconds.
+    Sleep(2000)
 
     ; Send a string of text to the edit control of Notepad. The handle returned by WinWait is used for the "title" parameter of ControlSend.
     ControlSend($hWnd, "", "Edit1", "DCloud gaming")
 
     ; Wait for 2 seconds.
     Sleep(2000)
+
+	ControlClick($hWnd, "", "Edit1", "left", 1, 0, 0)
+
+    Sleep(2000)
+
+    ; Send a string of text to the edit control of Notepad. The handle returned by WinWait is used for the "title" parameter of ControlSend.
+    ControlSend($hWnd, "", "Edit1", "DCloud")
 
 	MsgBox(0, "Hello World!", "Done")
 EndFunc
