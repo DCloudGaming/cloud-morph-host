@@ -148,6 +148,9 @@
   event.sub(MEDIA_STREAM_INITIALIZED, (data) => {
     rtcp.start(data.stunturn);
   });
+  event.sub(HOST_AVAILABLE, (data) => {
+    rtcp.addHost(data.protocol, data.addr);
+  });
   event.sub(MEDIA_STREAM_SDP_AVAILABLE, (data) =>
     rtcp.setRemoteDescription(data.sdp, appScreen)
   );

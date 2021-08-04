@@ -69,6 +69,9 @@ const socket = (() => {
         case "INIT":
           event.pub(CLIENT_INIT, { data: data.data });
           break;
+        case "HOST":
+          event.pub(HOST_AVAILABLE, { host: data.data });
+          break;
       }
     };
   };

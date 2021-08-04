@@ -53,7 +53,8 @@ func NewServerWithHTTPServerMux(cfg config.Config, r *mux.Router, svmux *http.Se
 		},
 	)
 	// Websocket
-	r.HandleFunc("/ws", server.WS)
+	r.HandleFunc("/client", server.Client)
+	r.HandleFunc("/host", server.Host)
 	httpServer := &http.Server{
 		Addr:         addr,
 		ReadTimeout:  5 * time.Second,
@@ -67,12 +68,48 @@ func NewServerWithHTTPServerMux(cfg config.Config, r *mux.Router, svmux *http.Se
 	return server
 }
 
-func (o *Server) Handle() {
-	// Spawn CloudGaming Handle
-	go o.capp.Handle()
+func (s *Server) Host(w http.ResponseWriter, r *http.Request) {
+	log.Println("A host is connecting...")
+	defer func() {
+		if r := recover(); r != nil {
+			log.Println("Warn: Something wrong. Recovered in ", r)
+		}
+	}()
+
+	// upgrader to upgrade http connection to websocket connection
+	upgrader := websocket.Upgrader{}
+	upgrader.CheckOrigin = func(r *http.Request) bool {
+		// Check origin of upgrader
+		// TODO: can we be stricter?
+		return true
+	}
+	// be aware of ReadBufferSize, WriteBufferSize (default 4096)
+	// https://pkg.go.dev/github.com/gorilla/websocket?tab=doc#Upgrader
+	c, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		log.Println("Coordinator: [!] WS upgrade:", err)
+		return
+	}
+
+	// Create websocket Client
+	wsClient := cws.NewClient(c)
+	clientID := wsClient.GetID()
+	// Add new client game session to Cloud App service
+	serviceHost := s.capp.AddHost(clientID, wsClient)
+	serviceHost.Route(s.capp.clients)
+	log.Println("Initialized ServiceClient")
+
+	s.initClientData(wsClient)
+	go func(browserClient *cws.Client) {
+		browserClient.Listen()
+		log.Println("Closing connection")
+		browserClient.Close()
+		s.capp.RemoveClient(clientID)
+		log.Println("Closed connection")
+	}(wsClient)
 }
 
-func (s *Server) WS(w http.ResponseWriter, r *http.Request) {
+func (s *Server) Client(w http.ResponseWriter, r *http.Request) {
 	log.Println("A user is connecting...")
 	defer func() {
 		if r := recover(); r != nil {
@@ -100,7 +137,7 @@ func (s *Server) WS(w http.ResponseWriter, r *http.Request) {
 	clientID := wsClient.GetID()
 	// Add new client game session to Cloud App service
 	serviceClient := s.capp.AddClient(clientID, wsClient)
-	serviceClient.Route(s.capp.GetSSRC())
+	serviceClient.Route(s.capp.hosts)
 	log.Println("Initialized ServiceClient")
 
 	s.initClientData(wsClient)

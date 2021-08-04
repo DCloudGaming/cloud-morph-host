@@ -121,6 +121,9 @@ const rtcp = (() => {
 
   return {
     start: start,
+    addHost: (protocol, addr) => {
+      socket.connect(protocol, `${addr}/ws`);
+    },
     setRemoteDescription: async (data, media) => {
       const offer = new RTCSessionDescription(JSON.parse(atob(data)));
       await connection.setRemoteDescription(offer);

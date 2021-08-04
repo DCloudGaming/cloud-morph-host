@@ -77,3 +77,4 @@ const MOUSE_UP = "mouseUp";
 const MOUSE_MOVE = "mouseMove";
 
 const CLIENT_INIT = "clientInit";
+const HOST_AVAILABLE = "hostAvailable";
