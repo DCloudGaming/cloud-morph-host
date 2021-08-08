@@ -65,7 +65,7 @@ func NewCloudAppClient(cfg config.Config, inputEvents chan Packet) *ccImpl {
 	c := &ccImpl{
 		videoStream: make(chan *rtp.Packet, 1),
 		audioStream: make(chan *rtp.Packet, 1),
-		inputEvents: inputEvents,
+		//inputEvents: inputEvents,
 	}
 
 	// To use for communicate with syncinput

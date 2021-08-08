@@ -229,7 +229,7 @@ func NewCloudService(cfg config.Config) *Service {
 		clients:   map[string]*Client{},
 		appEvents: appEvents,
 		ccApp:     NewCloudAppClient(cfg, appEvents),
-		config:    cfg,
+		//config:    cfg,
 	}
 
 	return s
@@ -282,5 +282,5 @@ func (s *Service) Handle() {
 	// 		}
 	// 	}
 	// }()
-	s.ccApp.Handle()
+	//s.ccApp.Handle()
 }
