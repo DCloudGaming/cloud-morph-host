@@ -56,35 +56,6 @@ func NewServiceClient(clientID string, ws *cws.Client) *Client {
 	}
 }
 
-// Route: Handshake to initialize WebRTC
-func (c *Client) Route(hosts map[string]*Host) {
-	c.ws.Receive("initwebrtc",
-		func(req cws.WSPacket) (resp cws.WSPacket) {
-			for _, host := range hosts {
-				host.ws.Send(req, nil)
-			}
-			return cws.EmptyPacket
-		})
-
-	c.ws.Receive(
-		"answer",
-		func(resp cws.WSPacket) (req cws.WSPacket) {
-			for _, host := range hosts {
-				host.ws.Send(req, nil)
-			}
-			return cws.EmptyPacket
-		})
-
-	c.ws.Receive(
-		"candidate",
-		func(resp cws.WSPacket) (req cws.WSPacket) {
-			for _, host := range hosts {
-				host.ws.Send(req, nil)
-			}
-			return cws.EmptyPacket
-		})
-}
-
 func (s *Service) AddHost(hostID string, ws *cws.Client) *Host {
 	host := NewServiceHost(hostID, ws)
 	s.hosts[hostID] = host
@@ -105,43 +76,16 @@ func NewServiceHost(hostID string, ws *cws.Client) *Host {
 	}
 }
 
-// Route: Handshake to initialize WebRTC
-func (c *Host) Route(clients map[string]*Client) {
-	c.ws.Receive(
-		"init",
-		func(req cws.WSPacket) (resp cws.WSPacket) {
-			for _, client := range clients {
-				client.ws.Send(req, nil)
-			}
-			return cws.EmptyPacket
-		})
-
-	c.ws.Receive(
-		"INIT",
-		func(req cws.WSPacket) (resp cws.WSPacket) {
-			for _, client := range clients {
-				client.ws.Send(req, nil)
-			}
-			return cws.EmptyPacket
-		})
-
-	c.ws.Receive(
-		"candidate",
-		func(req cws.WSPacket) (resp cws.WSPacket) {
-			for _, client := range clients {
-				client.ws.Send(req, nil)
-			}
-			return cws.EmptyPacket
-		})
-
-	c.ws.Receive(
-		"offer",
-		func(req cws.WSPacket) (resp cws.WSPacket) {
-			for _, client := range clients {
-				client.ws.Send(req, nil)
-			}
-			return cws.EmptyPacket
-		})
+func addForwardingRoute(sender *cws.Client, receiver *cws.Client, messages []string) {
+	for _, message := range messages {
+		sender.Receive(
+			message,
+			func(req cws.WSPacket) cws.WSPacket {
+				resp := sender.SyncSend(req)
+				return resp
+			},
+		)
+	}
 }
 
 // NewCloudService returns a Cloud Service

@@ -121,9 +121,6 @@ const rtcp = (() => {
 
   return {
     start: start,
-    addHost: (protocol, addr) => {
-      socket.connect(protocol, `${addr}/ws`);
-    },
     setRemoteDescription: async (data, media) => {
       const offer = new RTCSessionDescription(JSON.parse(atob(data)));
       await connection.setRemoteDescription(offer);
@@ -162,7 +159,6 @@ const rtcp = (() => {
       });
       isFlushing = false;
     },
-    input: (data) => inputChannel.send(data),
     isConnected: () => connected,
     isInputReady: () => inputReady,
     getConnection: () => connection,

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"github.com/DCloudGaming/cloud-morph-host/pkg/common/config"
 	"github.com/DCloudGaming/cloud-morph-host/pkg/common/cws"
 	"github.com/gorilla/websocket"
 	"log"
@@ -17,7 +18,6 @@ type initData struct {
 	CurAppID string `json:"cur_app_id"`
 }
 
-const addr string = ":8888"
 var signallingServerAddr = flag.String("addr", "localhost:8080", "http service address")
 
 type Server struct {
@@ -26,12 +26,14 @@ type Server struct {
 	capp       *Service
 }
 
-func NewServer() *Server {
-	return NewServerWithHTTPServerMux()
+func NewServer(cfg config.Config) *Server {
+	return NewServerWithHTTPServerMux(cfg)
 }
 
-func NewServerWithHTTPServerMux() *Server {
-	server := &Server{}
+func NewServerWithHTTPServerMux(cfg config.Config) *Server {
+	server := &Server{
+		capp: NewCloudService(cfg),
+	}
 	return server
 }
 
@@ -74,12 +76,14 @@ func (s *Server) NotifySignallingServer() {
 	// Create websocket Client
 	wsClient := cws.NewClient(c)
 	clientID := wsClient.GetID()
+
 	// Add new client game session to Cloud App service
 	serviceClient := s.capp.AddClient(clientID, wsClient)
+	s.initClientData(wsClient)
+
 	serviceClient.Route(s.capp.GetSSRC())
 	log.Println("Initialized ServiceClient")
 
-	s.initClientData(wsClient)
 	go func(browserClient *cws.Client) {
 		browserClient.Listen()
 		log.Println("Closing connection")
