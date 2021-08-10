@@ -92,6 +92,7 @@ func addForwardingRoute(sender *cws.Client, receiver *cws.Client, messages []str
 func NewCloudService(cfg config.Config) *Service {
 	s := &Service{
 		clients:   map[string]*Client{},
+		hosts:   map[string]*Host{},
 		ccApp:     NewCloudAppClient(cfg),
 		config:    cfg,
 	}
