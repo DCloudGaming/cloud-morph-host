@@ -10,8 +10,6 @@ import (
 	"github.com/gorilla/websocket"
 	"log"
 	"net/url"
-	"os"
-	"os/signal"
 )
 
 type initData struct {
@@ -61,9 +59,6 @@ func (s *Server) NotifySignallingServer() {
 	flag.Parse()
 	log.SetFlags(0)
 
-	interrupt := make(chan os.Signal, 1)
-	signal.Notify(interrupt, os.Interrupt)
-
 	u := url.URL{Scheme: "ws", Host: *signallingServerAddr, Path: "/host"}
 	log.Printf("connecting to %s", u.String())
 
@@ -71,7 +66,6 @@ func (s *Server) NotifySignallingServer() {
 	if err != nil {
 		log.Fatal("dial:", err)
 	}
-	defer c.Close()
 
 	// Create websocket Client
 	wsClient := cws.NewClient(c)
@@ -96,20 +90,6 @@ func (s *Server) NotifySignallingServer() {
 		log.Println("Coordinator: [!] WS upgrade:", err)
 		return
 	}
-
-	done := make(chan struct{})
-
-	go func() {
-		defer close(done)
-		for {
-			_, message, err := c.ReadMessage()
-			if err != nil {
-				log.Println("read:", err)
-				return
-			}
-			log.Printf("recv: %s", message)
-		}
-	}()
 }
 
 func (o *Server) Shutdown() {

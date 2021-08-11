@@ -156,6 +156,15 @@ func (c *Client) Handle() {
 
 // Route: Handshake to initialize WebRTC
 func (c *Client) Route(ssrc uint32) {
+	c.ws.Receive(
+		"INIT",
+		func(resp cws.WSPacket) (req cws.WSPacket) {
+			log.Println("Received INIT")
+
+			return cws.EmptyPacket
+		},
+	)
+
 	c.ws.Receive("initwebrtc", func(req cws.WSPacket) (resp cws.WSPacket) {
 		log.Println("Received a request to createOffer from browser", req)
 
@@ -217,6 +226,14 @@ func (c *Client) Route(ssrc uint32) {
 				log.Println("Error: Cannot add IceCandidate of client: " + resp.SessionID)
 			}
 
+			return cws.EmptyPacket
+		},
+	)
+
+	c.ws.Receive(
+		"heartbeat",
+		func(resp cws.WSPacket) (req cws.WSPacket) {
+			log.Println("Received heartbeat")
 			return cws.EmptyPacket
 		},
 	)

@@ -7,14 +7,14 @@ import (
 
 type Service struct {
 	clients map[string]*Client
-	hosts map[string]*Host
+	hosts   map[string]*Host
 	ccApp   *ccImpl
 	config  config.Config
 }
 
 type Client struct {
-	clientID    string
-	ws          *cws.Client
+	clientID string
+	ws       *cws.Client
 	// cancel to trigger cleaning up when client is disconnected
 	cancel chan struct{}
 	// done to notify if the client is done clean up
@@ -22,8 +22,8 @@ type Client struct {
 }
 
 type Host struct {
-	hostID    string
-	ws          *cws.Client
+	hostID string
+	ws     *cws.Client
 	// cancel to trigger cleaning up when client is disconnected
 	cancel chan struct{}
 	// done to notify if the client is done clean up
@@ -49,10 +49,10 @@ func (s *Service) RemoveClient(clientID string) {
 
 func NewServiceClient(clientID string, ws *cws.Client) *Client {
 	return &Client{
-		clientID:    clientID,
-		ws:          ws,
-		cancel:      make(chan struct{}),
-		done:        make(chan struct{}),
+		clientID: clientID,
+		ws:       ws,
+		cancel:   make(chan struct{}),
+		done:     make(chan struct{}),
 	}
 }
 
@@ -69,10 +69,10 @@ func (s *Service) RemoveHost(hostID string) {
 
 func NewServiceHost(hostID string, ws *cws.Client) *Host {
 	return &Host{
-		hostID:    hostID,
-		ws:          ws,
-		cancel:      make(chan struct{}),
-		done:        make(chan struct{}),
+		hostID: hostID,
+		ws:     ws,
+		cancel: make(chan struct{}),
+		done:   make(chan struct{}),
 	}
 }
 
@@ -81,7 +81,7 @@ func addForwardingRoute(sender *cws.Client, receiver *cws.Client, messages []str
 		sender.Receive(
 			message,
 			func(req cws.WSPacket) cws.WSPacket {
-				resp := sender.SyncSend(req)
+				resp := receiver.SyncSend(req)
 				return resp
 			},
 		)
@@ -91,10 +91,10 @@ func addForwardingRoute(sender *cws.Client, receiver *cws.Client, messages []str
 // NewCloudService returns a Cloud Service
 func NewCloudService(cfg config.Config) *Service {
 	s := &Service{
-		clients:   map[string]*Client{},
+		clients: map[string]*Client{},
 		hosts:   map[string]*Host{},
-		ccApp:     NewCloudAppClient(cfg),
-		config:    cfg,
+		ccApp:   NewCloudAppClient(cfg),
+		config:  cfg,
 	}
 
 	return s

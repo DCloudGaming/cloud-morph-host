@@ -99,11 +99,14 @@ func (s *Server) Host(w http.ResponseWriter, r *http.Request) {
 
 	// TODO: add mapping host-client here
 	for _, serviceClient := range s.capp.clients {
+		addForwardingRoute(serviceClient.ws, wsClient, []string{"initwebrtc", "answer", "candidate"})
 		addForwardingRoute(wsClient, serviceClient.ws, []string{"init", "INIT", "candidate", "offer"})
 		break
 	}
 
-	log.Println("Initialized ServiceClient")
+	log.Println("Initialized ServiceHost")
+
+	go wsClient.Heartbeat()
 
 	s.initClientData(wsClient)
 	go func(browserClient *cws.Client) {
@@ -144,9 +147,9 @@ func (s *Server) Client(w http.ResponseWriter, r *http.Request) {
 	// Add new client game session to Cloud App service
 	s.capp.AddClient(clientID, wsClient)
 
-	// TODO: add mapping host-client here
 	for _, serviceHost := range s.capp.hosts {
 		addForwardingRoute(wsClient, serviceHost.ws, []string{"initwebrtc", "answer", "candidate"})
+		addForwardingRoute(serviceHost.ws, wsClient, []string{"init", "INIT", "candidate", "offer"})
 		break
 	}
 	log.Println("Initialized ServiceClient")

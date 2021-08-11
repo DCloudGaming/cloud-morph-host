@@ -59,14 +59,19 @@ func NewClient(conn *websocket.Conn) *Client {
 
 // Send sends a packet and trigger callback when the packet comes back
 func (c *Client) Send(request WSPacket, callback func(response WSPacket)) {
-	log.Println("Send:", request.Type)
-	log.Println("SendData:", request.Data)
+	if request.Type != "heartbeat" {
+		log.Println("Send|type=", request.Type)
+		log.Println("Send|data=", request.Data)
+	}
 	request.PacketID = uuid.Must(uuid.NewV4()).String()
 	data, err := json.Marshal(request)
 	if err != nil {
 		return
 	}
 
+	if request.Type != "heartbeat" {
+		log.Println("Send|packet_id=", request.PacketID)
+	}
 	// Wrap callback with sessionID and packetID
 	if callback != nil {
 		wrapperCallback := func(resp WSPacket) {
@@ -94,9 +99,11 @@ func (c *Client) Send(request WSPacket, callback func(response WSPacket)) {
 // Receive receive and response
 func (c *Client) Receive(id string, f func(request WSPacket) (response WSPacket)) {
 	c.recvCallback[id] = func(request WSPacket) {
-		log.Println("Receive:", id)
-		log.Println("Receive:", request.Type)
-		log.Println("Receive:", request.Data)
+		if request.Type != "heartbeat" {
+			log.Println("Receive|id=", id)
+			log.Println("Receive|type=", request.Type)
+			log.Println("Receive|data=", request.Data)
+		}
 		// defer func() {
 		// 	if err := recover(); err != nil {
 		// 		log.Println("Recovered from err ", err)
