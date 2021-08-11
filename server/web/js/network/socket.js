@@ -69,6 +69,9 @@ const socket = (() => {
         case "INIT":
           event.pub(CLIENT_INIT, { data: data.data });
           break;
+        case "HOST":
+          event.pub(HOST_AVAILABLE, { host: data.data });
+          break;
       }
     };
   };
@@ -79,7 +82,10 @@ const socket = (() => {
     send({ id: "heartbeat", data: time.toString() });
     event.pub(PING_REQUEST, { time: time });
   };
-  const send = (data) => conn.send(JSON.stringify(data));
+  const send = (data) => {
+    log.info("ws|send|data=", JSON.stringify(data));
+    conn.send(JSON.stringify(data));
+  }
   const latency = (workers, packetId) =>
     send({
       id: "checkLatency",

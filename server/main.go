@@ -8,8 +8,8 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/DCloudGaming/cloud-morph-host/pkg/common/config"
 	"github.com/DCloudGaming/cloud-morph-host/pkg/cloudapp"
+	"github.com/DCloudGaming/cloud-morph-host/pkg/common/config"
 )
 
 const configFilePath = "./config.yaml"
@@ -46,10 +46,8 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	// TODO: Make the communication over websocket
 	http.Handle("/assets/", http.StripPrefix("/assets", http.FileServer(http.Dir("./assets"))))
 	server := cloudapp.NewServer(cfg)
-	server.Handle()
 
 	go func() {
 		err := server.ListenAndServe()
