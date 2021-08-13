@@ -159,7 +159,6 @@ const rtcp = (() => {
       });
       isFlushing = false;
     },
-    input: (data) => inputChannel.send(data),
     isConnected: () => connected,
     isInputReady: () => inputReady,
     getConnection: () => connection,

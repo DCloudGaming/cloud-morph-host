@@ -99,7 +99,7 @@
     //) {
       //return;
     //}
-    event.pub(KEY_RELEASED, { key: e.keyCode });
+    // event.pub(KEY_RELEASED, { key: e.keyCode });
   });
 
   appScreen.addEventListener("mousedown", (e) => {
@@ -113,27 +113,27 @@
     });
   });
 
-  appScreen.addEventListener("mouseup", (e) => {
-    boundRect = appScreen.getBoundingClientRect();
-    event.pub(MOUSE_UP, {
-      isLeft: e.button == 0 ? 1 : 0, // 1 is right button
-      x: e.offsetX,
-      y: e.offsetY,
-      width: boundRect.width,
-      height: boundRect.height,
-    });
-  });
-
-  appScreen.addEventListener("mousemove", function (e) {
-    boundRect = appScreen.getBoundingClientRect();
-    event.pub(MOUSE_MOVE, {
-      isLeft: e.button == 0 ? 1 : 0, // 1 is right button
-      x: e.clientX - boundRect.left,
-      y: e.clientY - boundRect.top,
-      width: boundRect.width,
-      height: boundRect.height,
-    });
-  });
+  // appScreen.addEventListener("mouseup", (e) => {
+  //   boundRect = appScreen.getBoundingClientRect();
+  //   event.pub(MOUSE_UP, {
+  //     isLeft: e.button == 0 ? 1 : 0, // 1 is right button
+  //     x: e.offsetX,
+  //     y: e.offsetY,
+  //     width: boundRect.width,
+  //     height: boundRect.height,
+  //   });
+  // });
+  //
+  // appScreen.addEventListener("mousemove", function (e) {
+  //   boundRect = appScreen.getBoundingClientRect();
+  //   event.pub(MOUSE_MOVE, {
+  //     isLeft: e.button == 0 ? 1 : 0, // 1 is right button
+  //     x: e.clientX - boundRect.left,
+  //     y: e.clientY - boundRect.top,
+  //     width: boundRect.width,
+  //     height: boundRect.height,
+  //   });
+  // });
 
   document.addEventListener(
     "contextmenu",
@@ -148,6 +148,9 @@
   event.sub(MEDIA_STREAM_INITIALIZED, (data) => {
     rtcp.start(data.stunturn);
   });
+  event.sub(HOST_AVAILABLE, (data) => {
+    rtcp.addHost(data.protocol, data.addr);
+  });
   event.sub(MEDIA_STREAM_SDP_AVAILABLE, (data) =>
     rtcp.setRemoteDescription(data.sdp, appScreen)
   );
@@ -158,10 +161,10 @@
   event.sub(MEDIA_STREAM_READY, () => rtcp.start());
   event.sub(CONNECTION_READY, onConnectionReady);
   event.sub(CONNECTION_CLOSED, () => input.poll().disable());
-  event.sub(KEY_PRESSED, onKeyPress);
-  event.sub(KEY_RELEASED, onKeyRelease);
-  event.sub(MOUSE_MOVE, onMouseMove);
-  event.sub(MOUSE_DOWN, onMouseDown);
-  event.sub(MOUSE_UP, onMouseUp);
-  event.sub(KEY_STATE_UPDATED, (data) => rtcp.input(data));
+  // event.sub(KEY_PRESSED, onKeyPress);
+  // event.sub(KEY_RELEASED, onKeyRelease);
+  // event.sub(MOUSE_MOVE, onMouseMove);
+  // event.sub(MOUSE_DOWN, onMouseDown);
+  // event.sub(MOUSE_UP, onMouseUp);
+  // event.sub(KEY_STATE_UPDATED, (data) => rtcp.input(data));
 })($, document, event, env);

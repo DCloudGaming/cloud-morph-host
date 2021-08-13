@@ -1,1 +1,9 @@
 cms_encoding/build
+.DS_Store
+.idea/
+server/.DS_Store
+server/.idea/
+server/vendor/
+streamer/.DS_Store
+streamer/.idea/
+streamer/vendor/
