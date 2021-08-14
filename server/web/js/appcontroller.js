@@ -145,6 +145,9 @@
     false
   );
 
+  event.sub(HOSTS_UPDATED, (data) => {
+    rtcp.updateHosts(data.hosts);
+  });
   event.sub(MEDIA_STREAM_INITIALIZED, (data) => {
     rtcp.start(data.stunturn);
   });

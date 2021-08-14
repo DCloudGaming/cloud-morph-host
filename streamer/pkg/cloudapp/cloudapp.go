@@ -41,6 +41,7 @@ type ccImpl struct {
 	screenHeight float32
 	ssrc         uint32
 	payloadType  uint8
+	cfg config.Config
 }
 
 // Packet represents a packet in cloudapp
@@ -49,7 +50,7 @@ type Packet struct {
 	Data string `json:"data"`
 }
 
-const startVideoRTPPort = 5004
+const startVideoRTPPort = 5005
 const startAudioRTPPort = 4004
 const eventKeyDown = "KEYDOWN"
 const eventKeyUp = "KEYUP"
@@ -61,13 +62,21 @@ var curVideoRTPPort = startVideoRTPPort
 var curAudioRTPPort = startAudioRTPPort
 
 // NewCloudAppClient returns new cloudapp client
-func NewCloudAppClient(cfg config.Config, inputEvents chan Packet) *ccImpl {
+func NewCloudAppClient(cfg config.Config, inputEvents chan Packet, appPath string) *ccImpl {
 	c := &ccImpl{
 		videoStream: make(chan *rtp.Packet, 1),
 		audioStream: make(chan *rtp.Packet, 1),
+		cfg: cfg,
 		//inputEvents: inputEvents,
 	}
 
+	if appPath != "" {
+		NewCloudAppClientStart(c, appPath)
+	}
+	return c
+}
+
+func NewCloudAppClientStart(c *ccImpl, appPath string) {
 	// To use for communicate with syncinput
 	// la, err := net.ResolveTCPAddr("tcp4", ":9090")
 	// if err != nil {
@@ -80,8 +89,8 @@ func NewCloudAppClient(cfg config.Config, inputEvents chan Packet) *ccImpl {
 	// }
 
 	log.Println("Launching application")
-	c.launchApp(curVideoRTPPort, curAudioRTPPort, cfg)
-	log.Println("Launched application")
+	c.launchApp(curVideoRTPPort, curAudioRTPPort, c.cfg, appPath)
+	log.Println("Launched host app")
 
 	// Read video stream from encoded video stream produced by FFMPEG
 	log.Println("Setup Video Listener")
@@ -98,8 +107,6 @@ func NewCloudAppClient(cfg config.Config, inputEvents chan Packet) *ccImpl {
 	log.Println("Launched Video stream listener")
 	// c.listenAudioStream()
 	// log.Println("Launched Audio stream listener")
-
-	return c
 }
 
 // convertWSPacket returns cloudapp packet from ws packet
@@ -114,12 +121,12 @@ func (c *ccImpl) GetSSRC() uint32 {
 	return c.ssrc
 }
 
-func runApp(params []string) {
+func runApp(params []string, appPath string) {
 	log.Println("params: ", params)
 
 	// Launch application using exec
 	var cmd *exec.Cmd
-	params = append([]string{"/C", "run-app.bat"}, params...)
+	params = append([]string{"/C", "bat_files/" + appPath}, params...)
 	cmd = exec.Command("cmd", params...)
 
 	cmd.Env = os.Environ()
@@ -143,7 +150,7 @@ func runApp(params []string) {
 }
 
 // done to forcefully stop all processes
-func (c *ccImpl) launchApp(curVideoRTPPort int, curAudioRTPPort int, cfg config.Config) chan struct{} {
+func (c *ccImpl) launchApp(curVideoRTPPort int, curAudioRTPPort int, cfg config.Config, appPath string) chan struct{} {
 	params := []string{cfg.Path, cfg.AppFile, cfg.WindowTitle}
 	if cfg.HWKey {
 		params = append(params, "game")
@@ -152,7 +159,7 @@ func (c *ccImpl) launchApp(curVideoRTPPort int, curAudioRTPPort int, cfg config.
 	}
 	params = append(params, []string{strconv.Itoa(cfg.ScreenWidth), strconv.Itoa(cfg.ScreenHeight)}...)
 
-	runApp(params)
+	runApp(params, appPath)
 	// update flag
 	c.screenWidth = float32(cfg.ScreenWidth)
 	c.screenHeight = float32(cfg.ScreenHeight)
