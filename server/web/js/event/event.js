@@ -56,6 +56,7 @@ const event = (() => {
 
 // events
 // WebRTC sign
+const HOSTS_UPDATED = "hostsUpdated";
 const MEDIA_STREAM_INITIALIZED = "mediaStreamInitialized";
 const MEDIA_STREAM_SDP_AVAILABLE = "mediaStreamSdpAvailable";
 const MEDIA_STREAM_CANDIDATE_ADD = "mediaStreamCandidateAdd";

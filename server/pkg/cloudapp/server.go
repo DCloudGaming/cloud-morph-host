@@ -91,31 +91,33 @@ func (s *Server) Host(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Create websocket Client
-	wsClient := cws.NewClient(c)
-	clientID := wsClient.GetID()
+	// Create websocket client for Host
+	wsHost := cws.NewClient(c)
+	hostID := wsHost.GetID()
 	// Add new client game session to Cloud App service
-	s.capp.AddHost(clientID, wsClient)
+	serviceHostClient := s.capp.AddHost(hostID, wsHost)
 
-	// TODO: add mapping host-client here
-	for _, serviceClient := range s.capp.clients {
-		addForwardingRoute(serviceClient.ws, wsClient, []string{"initwebrtc", "answer", "candidate"})
-		addForwardingRoute(wsClient, serviceClient.ws, []string{"init", "INIT", "candidate", "offer"})
-		break
-	}
+	// TODO: add mapping host-client here. This one should be invoked when client requests particular one.
+	//for _, serviceClient := range s.capp.clients {
+	//	addForwardingRoute(serviceClient.ws, serviceClient.clientID, wsHost, hostID, []string{"initwebrtc", "answer", "candidate"}, s, true)
+	//	addForwardingRoute(wsHost, hostID, serviceClient.ws, serviceClient.clientID, []string{"init", "INIT", "candidate", "offer"}, s, false)
+	//	break
+	//}
 
 	log.Println("Initialized ServiceHost")
 
-	go wsClient.Heartbeat()
+	go wsHost.Heartbeat()
 
-	s.initClientData(wsClient)
-	go func(browserClient *cws.Client) {
-		browserClient.Listen()
+	s.initClientData(wsHost)
+	serviceHostClient.HostRoute(s)
+
+	go func(hostClient *cws.Client) {
+		hostClient.Listen()
 		log.Println("Closing connection")
-		browserClient.Close()
-		s.capp.RemoveClient(clientID)
+		hostClient.Close()
+		s.capp.RemoveHost(hostID)
 		log.Println("Closed connection")
-	}(wsClient)
+	}(wsHost)
 }
 
 func (s *Server) Client(w http.ResponseWriter, r *http.Request) {
@@ -145,16 +147,18 @@ func (s *Server) Client(w http.ResponseWriter, r *http.Request) {
 	wsClient := cws.NewClient(c)
 	clientID := wsClient.GetID()
 	// Add new client game session to Cloud App service
-	s.capp.AddClient(clientID, wsClient)
+	serviceBrowserClient := s.capp.AddClient(clientID, wsClient)
 
-	for _, serviceHost := range s.capp.hosts {
-		addForwardingRoute(wsClient, serviceHost.ws, []string{"initwebrtc", "answer", "candidate"})
-		addForwardingRoute(serviceHost.ws, wsClient, []string{"init", "INIT", "candidate", "offer"})
-		break
-	}
+	//for _, serviceHost := range s.capp.hosts {
+	//	addForwardingRoute(wsClient, clientID, serviceHost.ws, serviceHost.hostID, []string{"initwebrtc", "answer", "candidate"}, s, true)
+	//	addForwardingRoute(serviceHost.ws, serviceHost.hostID, wsClient, clientID, []string{"init", "INIT", "candidate", "offer"}, s, false)
+	//	break
+	//}
 	log.Println("Initialized ServiceClient")
 
 	s.initClientData(wsClient)
+	serviceBrowserClient.ClientRoute(s)
+
 	go func(browserClient *cws.Client) {
 		browserClient.Listen()
 		log.Println("Closing connection")
@@ -162,6 +166,12 @@ func (s *Server) Client(w http.ResponseWriter, r *http.Request) {
 		s.capp.RemoveClient(clientID)
 		log.Println("Closed connection")
 	}(wsClient)
+
+
+	wsClient.Send(cws.WSPacket{
+		Type: "hostsUpdated",
+		Data: GetAllHosts(s),
+	}, nil)
 }
 
 func (s *Server) initClientData(client *cws.Client) {

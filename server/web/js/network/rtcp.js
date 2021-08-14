@@ -46,7 +46,7 @@ const rtcp = (() => {
 
     socket.send({
       type: "initwebrtc",
-      data: JSON.stringify({ is_mobile: env.isMobileDevice() }),
+      data: JSON.stringify({ is_mobile: env.isMobileDevice()}),
     });
   };
 
@@ -162,5 +162,16 @@ const rtcp = (() => {
     isConnected: () => connected,
     isInputReady: () => inputReady,
     getConnection: () => connection,
+    updateHosts: (hosts) => {
+      var parse_hosts = JSON.parse(hosts);
+      var chosen_host = parse_hosts[0];
+      log.info(`UpdateHosts signal ${hosts}`);
+      if (chosen_host) {
+        socket.send({
+          type: "registerBrowserHost",
+          data: JSON.stringify({host_id: chosen_host["host_id"], app: chosen_host["app_paths"][0]})
+        });
+      }
+    },
   };
 })(event, socket, env, log);

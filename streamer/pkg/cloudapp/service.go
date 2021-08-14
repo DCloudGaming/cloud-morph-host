@@ -66,10 +66,11 @@ func (s *Service) RemoveClient(clientID string) {
 
 func NewServiceClient(clientID string, ws *cws.Client, appEvents chan Packet, ssrc uint32) *Client {
 	// The 1st packet
-	ws.Send(cws.WSPacket{
-		Type: "init",
-		Data: DefaultSTUNTURN,
-	}, nil)
+	// Note: We won't force browser to initwebrtc yet when new host connects
+	//ws.Send(cws.WSPacket{
+	//	Type: "init",
+	//	Data: DefaultSTUNTURN,
+	//}, nil)
 
 	return &Client{
 		appEvents:   appEvents,
@@ -155,7 +156,28 @@ func (c *Client) Handle() {
 }
 
 // Route: Handshake to initialize WebRTC
-func (c *Client) Route(ssrc uint32) {
+func (c *Client) Route(ssrc uint32, s *Server) {
+
+	//ws.Send(cws.WSPacket{
+	//	Type: "init",
+	//	Data: DefaultSTUNTURN,
+	//}, nil)
+
+	c.ws.Receive(
+		"init",
+		func(req cws.WSPacket) (resp cws.WSPacket) {
+			var appPath = req.Data
+			s.capp.ccApp = NewCloudAppClient(s.capp.config, s.capp.appEvents, appPath)
+			c.ws.Send(cws.WSPacket{
+				Type: "init",
+				Data: DefaultSTUNTURN,
+			}, nil)
+			//c.Handle()
+			s.Handle()
+			return cws.EmptyPacket
+		},
+	)
+
 	c.ws.Receive(
 		"INIT",
 		func(resp cws.WSPacket) (req cws.WSPacket) {
@@ -245,7 +267,8 @@ func NewCloudService(cfg config.Config) *Service {
 	s := &Service{
 		clients:   map[string]*Client{},
 		appEvents: appEvents,
-		ccApp:     NewCloudAppClient(cfg, appEvents),
+		// ccApp is only initiated later in "init" websocket message
+		ccApp:     NewCloudAppClient(cfg, appEvents, ""),
 		config:    cfg,
 	}
 
