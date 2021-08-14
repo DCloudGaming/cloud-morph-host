@@ -98,11 +98,11 @@ func (s *Server) Host(w http.ResponseWriter, r *http.Request) {
 	serviceHostClient := s.capp.AddHost(hostID, wsHost)
 
 	// TODO: add mapping host-client here. This one should be invoked when client requests particular one.
-	for _, serviceClient := range s.capp.clients {
-		addForwardingRoute(serviceClient.ws, serviceClient.clientID, wsHost, hostID, []string{"initwebrtc", "answer", "candidate"}, s, true)
-		addForwardingRoute(wsHost, hostID, serviceClient.ws, serviceClient.clientID, []string{"init", "INIT", "candidate", "offer"}, s, false)
-		break
-	}
+	//for _, serviceClient := range s.capp.clients {
+	//	addForwardingRoute(serviceClient.ws, serviceClient.clientID, wsHost, hostID, []string{"initwebrtc", "answer", "candidate"}, s, true)
+	//	addForwardingRoute(wsHost, hostID, serviceClient.ws, serviceClient.clientID, []string{"init", "INIT", "candidate", "offer"}, s, false)
+	//	break
+	//}
 
 	log.Println("Initialized ServiceHost")
 
@@ -149,11 +149,11 @@ func (s *Server) Client(w http.ResponseWriter, r *http.Request) {
 	// Add new client game session to Cloud App service
 	serviceBrowserClient := s.capp.AddClient(clientID, wsClient)
 
-	for _, serviceHost := range s.capp.hosts {
-		addForwardingRoute(wsClient, clientID, serviceHost.ws, serviceHost.hostID, []string{"initwebrtc", "answer", "candidate"}, s, true)
-		addForwardingRoute(serviceHost.ws, serviceHost.hostID, wsClient, clientID, []string{"init", "INIT", "candidate", "offer"}, s, false)
-		break
-	}
+	//for _, serviceHost := range s.capp.hosts {
+	//	addForwardingRoute(wsClient, clientID, serviceHost.ws, serviceHost.hostID, []string{"initwebrtc", "answer", "candidate"}, s, true)
+	//	addForwardingRoute(serviceHost.ws, serviceHost.hostID, wsClient, clientID, []string{"init", "INIT", "candidate", "offer"}, s, false)
+	//	break
+	//}
 	log.Println("Initialized ServiceClient")
 
 	s.initClientData(wsClient)
@@ -166,6 +166,12 @@ func (s *Server) Client(w http.ResponseWriter, r *http.Request) {
 		s.capp.RemoveClient(clientID)
 		log.Println("Closed connection")
 	}(wsClient)
+
+
+	wsClient.Send(cws.WSPacket{
+		Type: "hostsUpdated",
+		Data: GetAllHosts(s),
+	}, nil)
 }
 
 func (s *Server) initClientData(client *cws.Client) {

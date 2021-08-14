@@ -21,7 +21,7 @@ func main() {
 	http.Handle("/assets/", http.StripPrefix("/assets", http.FileServer(http.Dir("./assets"))))
 	server := cloudapp.NewServer(cfg)
 	server.NotifySignallingServer()
-	server.Handle()
+	//server.Handle()
 
 	//go func() {
 	//	err := server.ListenAndServe()

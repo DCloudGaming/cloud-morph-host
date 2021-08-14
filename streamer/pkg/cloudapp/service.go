@@ -172,6 +172,8 @@ func (c *Client) Route(ssrc uint32, s *Server) {
 				Type: "init",
 				Data: DefaultSTUNTURN,
 			}, nil)
+			//c.Handle()
+			s.Handle()
 			return cws.EmptyPacket
 		},
 	)

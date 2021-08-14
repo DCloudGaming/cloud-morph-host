@@ -56,7 +56,7 @@ const socket = (() => {
       switch (message) {
         // Update host list when new host added to network
         case "hostsUpdated":
-          event.pub(NEW_HOST_ADDED, { hosts: data.data });
+          event.pub(HOSTS_UPDATED, { hosts: data.data });
           break;
         case "init":
           event.pub(MEDIA_STREAM_INITIALIZED, { stunturn: data.data });

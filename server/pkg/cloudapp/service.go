@@ -89,27 +89,75 @@ func NewServiceHost(hostID string, ws *cws.Client) *Host {
 	}
 }
 
-func addForwardingRoute(sender *cws.Client, senderID string, receiver *cws.Client, receiverID string, messages []string, s *Server, is_sender_browser bool) {
+//func addForwardingRoute(sender *cws.Client, senderID string, receiver *cws.Client, receiverID string, messages []string, s *Server, is_sender_browser bool) {
+func addForwardingRoute(c *Client, h *Host, messages []string, s *Server, is_sender_browser bool) {
 	for _, message := range messages {
-		sender.Receive(
+		//sender.Receive(
+		//	message,
+		//	func(req cws.WSPacket) cws.WSPacket {
+		//
+		//		if (is_sender_browser) {
+		//			if (s.capp.clientChosenApp[senderID].hostID != receiverID) {
+		//				return cws.EmptyPacket
+		//			}
+		//		} else {
+		//			if (s.capp.clientChosenApp[receiverID].hostID != senderID) {
+		//				return cws.EmptyPacket
+		//			}
+		//		}
+		//
+		//		resp := receiver.SyncSend(req)
+		//		return resp
+		//	},
+		//)
+		var sender_ws *cws.Client
+		var rec_ws *cws.Client
+		if (is_sender_browser) {
+			sender_ws = c.ws
+			rec_ws = h.ws
+		} else {
+			sender_ws = h.ws
+			rec_ws = c.ws
+		}
+
+		sender_ws.Receive(
 			message,
 			func(req cws.WSPacket) cws.WSPacket {
-
-				if (is_sender_browser) {
-					if (s.capp.clientChosenApp[senderID].hostID != receiverID) {
-						return cws.EmptyPacket
-					}
-				} else {
-					if (s.capp.clientChosenApp[receiverID].hostID != senderID) {
-						return cws.EmptyPacket
-					}
-				}
-
-				resp := receiver.SyncSend(req)
+				resp := rec_ws.SyncSend(req)
 				return resp
-			},
-		)
+			})
 	}
+}
+
+func GetAllHosts(s *Server) string {
+	type MinimalHostMeta struct {
+		HostID string `json:"host_id"`
+		AppPaths []string `json:"app_paths"`
+	}
+
+	//type HostsMeta struct {
+	//	hosts []MinimalHostMeta	`json:"hosts"`
+	//}
+
+	type HostsMeta []MinimalHostMeta
+	var hosts = HostsMeta{}
+
+	//var hosts []MinimalHostMeta
+	for _, h := range s.capp.hosts {
+		hosts = append(hosts, MinimalHostMeta{h.hostID, h.appPaths})
+	}
+
+	//hostsData := HostsMeta{
+	//	hosts: hosts,
+	//}
+
+	hostsJsonData, err := json.Marshal(hosts)
+	if err != nil {
+		return ""
+	}
+
+	hostJsonStr := string(hostsJsonData)
+	return hostJsonStr
 }
 
 func (h *Host) HostRoute(s *Server) {
@@ -128,33 +176,13 @@ func (h *Host) HostRoute(s *Server) {
 
 			h.appPaths = registerAppsData.AppPaths
 
-			type MinimalHostMeta struct {
-				hostID string `json:"host_id"`
-				appPaths []string `json:"app_paths"`
-			}
-
-			type HostsMeta struct {
-				hosts []MinimalHostMeta	`json:"hosts"`
-			}
-
-			var hosts []MinimalHostMeta
-			for _, h := range s.capp.hosts {
-				hosts = append(hosts, MinimalHostMeta{h.hostID, h.appPaths})
-			}
-
-			hostsData := HostsMeta{
-				hosts: hosts,
-			}
-
-			hostsJsonData, err := json.Marshal(hostsData)
-			if err != nil {
-				return
-			}
+			hostsJsonStr := GetAllHosts(s)
+			log.Println("hostsJsonStr " + hostsJsonStr)
 
 			for _, client := range s.capp.clients {
 				client.ws.Send(cws.WSPacket{
 					Type: "hostsUpdated",
-					Data: string(hostsJsonData),
+					Data: hostsJsonStr,
 				}, nil)
 			}
 
@@ -168,25 +196,34 @@ func (c *Client) ClientRoute(s *Server) {
 			"registerBrowserHost",
 			func(req cws.WSPacket) (resp cws.WSPacket) {
 				var hostAppsData struct {
-					host_id string
-					app     string
+					HostID string `json:"host_id"`
+					AppParam    string `json:"app"`
 				}
 				err := json.Unmarshal([]byte(req.Data), &hostAppsData)
 				if err != nil {
 					log.Println("Error: Cannot decode json:" , err)
 					return cws.EmptyPacket
 				}
-				s.capp.clientChosenApp[c.clientID] = ChosenHostApp{
-					hostID:  hostAppsData.host_id,
-					appPath: hostAppsData.app,
+				chosen_host_app := ChosenHostApp{
+					hostID:  hostAppsData.HostID,
+					appPath: hostAppsData.AppParam,
+				}
+				s.capp.clientChosenApp[c.clientID] = chosen_host_app
+
+				var h = s.capp.hosts[hostAppsData.HostID]
+
+				if h != nil {
+					addForwardingRoute(c, h, []string{"initwebrtc", "answer", "candidate"}, s, true)
+					addForwardingRoute(c, h, []string{"init", "INIT", "candidate", "offer"}, s, false)
+
+					// Send this request back to host. Host will start ffmpeg,
+					// and send the request back to browser to start initwebrtc
+					h.ws.Send(cws.WSPacket{
+						Type: "init",
+						Data: hostAppsData.AppParam,
+					}, nil)
 				}
 
-				// Send this request back to host. Host will start ffmpeg,
-				// and send the request back to browser to start initwebrtc
-				s.capp.hosts[hostAppsData.host_id].ws.Send(cws.WSPacket{
-					Type: "init",
-					Data: hostAppsData.app,
-				}, nil)
 				return cws.EmptyPacket
 			},
 		)
@@ -199,6 +236,7 @@ func NewCloudService(cfg config.Config) *Service {
 		hosts:   map[string]*Host{},
 		ccApp:   NewCloudAppClient(cfg),
 		config:  cfg,
+		clientChosenApp: map[string]ChosenHostApp{},
 	}
 
 	return s

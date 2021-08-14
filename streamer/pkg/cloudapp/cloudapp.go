@@ -126,7 +126,9 @@ func runApp(params []string, appPath string) {
 
 	// Launch application using exec
 	var cmd *exec.Cmd
-	params = append([]string{"/C", "bat_files/" + appPath}, params...)
+	//params = append([]string{"/C", appPath}, params...)
+	params = append([]string{"/C", "run-app.bat"}, params...)
+
 	cmd = exec.Command("cmd", params...)
 
 	cmd.Env = os.Environ()
