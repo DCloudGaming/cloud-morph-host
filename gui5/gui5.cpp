@@ -24,7 +24,7 @@
 #include <cstdint> 
 #include <wininet.h>  
 #include <tchar.h>
-#include <curl/curl.h>
+//#include <curl/curl.h>
 
 #define MAX_LOADSTRING 100
 #define WM_LBUTTONDBLCLK 0x0203
@@ -311,10 +311,19 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             case IDC_REGISTER_APPS:
             {
                 std::map<string, vector<string>>::iterator it2;
+                bool is_begin = true;
+                std::string param_str;
                 for (it2 = chosen_apps.begin(); it2 != chosen_apps.end(); it2++) {
+                    if (!is_begin) {
+                        param_str.append(",");
+                    }
+                    else {
+                        is_begin = false;
+                    }
                     string app_name = it2->first;
                     string app_exec = it2->second[0];
                     string app_title = it2->second[1];
+                    param_str.append(app_name);
                 }
 
                 //HINTERNET hIntSession =
@@ -347,9 +356,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 //::InternetCloseHandle(hHttpSession);
                 //::InternetCloseHandle(hIntSession);
 
-                //exec("curl -X PUT -d \"{ \"string\" : \"my string 1212 \"}\" localhost:8081/registerApp");
+                // TODO: This is temporary stupid solution, since curl/curl.h import not working.
 
-                CURL* curl;
+                string query_str = "curl http://localhost:8082/registerApp?data=";
+                query_str.append(param_str);
+                exec(query_str.c_str());
+
+                /*CURL* curl;
                 CURcode res;
 
                 curl = curl_easy_init()
@@ -360,7 +373,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 }
 
                 res = curl_easy_perform(curl);
-                curl_easy_cleanup(curl);
+                curl_easy_cleanup(curl);*/
 
                 MessageBox(
                     NULL,

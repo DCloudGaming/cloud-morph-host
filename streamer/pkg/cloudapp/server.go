@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"github.com/DCloudGaming/cloud-morph-host/pkg/common/config"
 	"github.com/DCloudGaming/cloud-morph-host/pkg/common/cws"
+	"strings"
+
 	//"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 	"log"
@@ -34,8 +36,17 @@ type StreamerHttp struct {
 	server *Server
 }
 
-//func (params *StreamerHttp) registerAppApi(w http.ResponseWriter, req *http.Request) {
-func registerAppApi(w http.ResponseWriter, req *http.Request) {
+func (params *StreamerHttp) registerAppApi(w http.ResponseWriter, req *http.Request) {
+	    // TODO: This is only temporary hack, to fix curl/curl.h in GUI C++ part
+	    s := strings.Split(req.RequestURI, "?data=")
+	    paramsQuery := strings.Split(s[1], ",")
+	    var paramsQueryTransform []string
+	    for _, x := range paramsQuery {
+	    	// TODO: Create .bat file contents here
+			paramsQueryTransform = append(paramsQueryTransform, "run-" + x + ".bat")
+		}
+	    sendRegisterApp(params.server, paramsQueryTransform)
+	    fmt.Println(params)
 		fmt.Println("Receive Register App Requests")
 }
 
@@ -60,8 +71,8 @@ func NewServerWithHTTPServerMux(cfg config.Config) *Server {
 		//httpServer: httpServer,
 	}
 
-	//params := &StreamerHttp{server: server}
-	http.HandleFunc("/registerApp", registerAppApi)
+	params := &StreamerHttp{server: server}
+	http.HandleFunc("/registerApp", params.registerAppApi)
 	//.Host("http://localhost:8081").Methods("GET").Schemes("http")
 
 	go http.ListenAndServe(":8082", nil)
@@ -89,7 +100,7 @@ func (s *Server) initClientData(client *cws.Client) {
 	}, nil)
 }
 
-func sendRegisterApp(s *Server) {
+func sendRegisterApp(s *Server, app_paths []string) {
 	// Send registrationApp Metadata to server
 	for _, serviceClient := range s.capp.clients {
 
@@ -98,9 +109,9 @@ func sendRegisterApp(s *Server) {
 		}
 
 		data := registerData{
-			// TODO: User interact with GUI => Create those bat files. Then send
 			// selection of which bat files allowed to use.
-			AppPaths: []string{"run-notepad.bat", "run-chrome.bat"},
+			//AppPaths: []string{"run-notepad.bat", "run-chrome.bat"},
+			AppPaths: app_paths,
 		}
 		registerJsonData, err := json.Marshal(data)
 		if err != nil {
@@ -151,7 +162,7 @@ func (s *Server) NotifySignallingServer() {
 	}
 
 	// TODO: This function is invoked in registerAppApi, receive requests from GUI.
-	sendRegisterApp(s)
+	//sendRegisterApp(s)
 }
 
 //func (o *Server) ListenAndServe() error {
