@@ -15,6 +15,8 @@
 #define IDC_MYICON				2
 #ifndef IDC_STATIC
 #define IDC_STATIC				-1
+#define IDC_SELECT_APP  (100)
+#define IDC_REGISTER_APPS (101)
 #endif
 // Next default values for new objects
 //

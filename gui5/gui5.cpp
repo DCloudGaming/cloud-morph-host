@@ -14,7 +14,17 @@
 #include <stdexcept>
 #include <string>
 #include <array>
-
+//#include <http_client.h>
+//#include<filestream.h>
+//#include <uri.h>
+#include <iostream>       // std::cout, std::hex
+#include <string>         // std::string, std::u32string
+#include <locale>         // std::wstring_convert
+#include <codecvt>        // std::codecvt_utf8
+#include <cstdint> 
+#include <wininet.h>  
+#include <tchar.h>
+#include <curl/curl.h>
 
 #define MAX_LOADSTRING 100
 #define WM_LBUTTONDBLCLK 0x0203
@@ -44,11 +54,12 @@ bool g_MovingMainWnd = FALSE;
 POINT g_OrigCursorPos;
 POINT g_OrigWndPos;
 WNDPROC prevWndProc;
-std::string go_exec_path = "../server/main.exe";
 std::map<wstring, vector<string>> exec_map = {
-    {L"Note Pad", {"notepad", "Untitled - Notepad"}},
-    {L"Chrome Session", {"start chrome", "Chrome Session"}}
+    {L"Note Pad", {"notepad", "notepad", "Untitled - Notepad"}},
+    {L"Chrome Session", {"chrome", "start chrome", "Chrome Session"}}
 };
+
+std::map<string, vector<string>> chosen_apps = {};
 
 // Forward declarations of functions included in this code module:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
@@ -64,6 +75,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_ LPWSTR    lpCmdLine,
                      _In_ int       nCmdShow)
 {
+    //exec("main.exe");
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
 
@@ -157,23 +169,41 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
        const wchar_t* key_name = key.c_str();
        auto value = x.second;
        // TODO: Change y-position too when out of frame
-       HWND hwndButton = CreateWindow(
-           L"BUTTON",  // Predefined class; Unicode assumed 
+       HWND hwndButton = CreateWindow( 
+           L"BUTTON",  // Predefined class; Unicode assumed  TEXT("button")
            key_name,      // Button text 
            //WS_OVERLAPPEDWINDOW,
-           WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // Styles 
+           WS_VISIBLE | WS_CHILD | BS_AUTOCHECKBOX,  // Styles 
            10 + 200 * i,         // x position 
            10,         // y position // TODO: Change y-position too when out of frame
            150,        // Button width
            100,        // Button height
            hWnd,     // Parent window
-           NULL,       // No menu.
+           (HMENU)IDC_SELECT_APP,       // No menu.
            hInstance,
+           //(HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE),
            NULL);      // Pointer not needed.
 
        //prevWndProc = (WNDPROC) SetWindowLongPtr(hwndButton, GWL_WNDPROC, (LONG_PTR)&ButtonWndProc);
        i += 1;
    }
+
+   std::wstring register_key = L"Register Apps";
+   const wchar_t* register_key_name = register_key.c_str();
+   HWND hwndButton = CreateWindow(
+       L"BUTTON",  // Predefined class; Unicode assumed 
+       register_key_name,      // Button text 
+       //WS_OVERLAPPEDWINDOW,
+       WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // Styles 
+       10 + 500,         // x position 
+       400,         // y position // TODO: Change y-position too when out of frame
+       350,        // Button width
+       100,        // Button height
+       hWnd,     // Parent window
+       (HMENU)IDC_REGISTER_APPS,       // No menu.
+       //hInstance,
+       (HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE),
+       NULL);      // Pointer not needed.
 
    ShowWindow(hWnd, nCmdShow);
    UpdateWindow(hWnd);
@@ -197,6 +227,10 @@ LRESULT CALLBACK ButtonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lP
     }
     return CallWindowProc(prevWndProc, hWnd, message, wParam, lParam);
 }
+
+//void sendRegistrationRequest() {
+//    LPCWSTR 
+//}
 
 //
 //  FUNCTION: WndProc(HWND, UINT, WPARAM, LPARAM)
@@ -224,6 +258,118 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             case IDM_EXIT:
                 DestroyWindow(hWnd);
                 break;
+            case IDC_SELECT_APP:
+                std::cout << "Select App " << std::endl;
+                if (GetCursorPos(&g_OrigCursorPos))
+                {
+                    using convert_type = std::codecvt_utf8<wchar_t>;
+                    std::wstring_convert<convert_type, wchar_t> converter;
+
+                    HWND click_window = WindowFromPoint(g_OrigCursorPos);
+                    //BOOL checked;
+                    //checked = IsDlgButtonChecked(hWnd, IDC_SELECT_APP);
+                    //chekced = CheckDlgButton(click_window, IDC_SELECT_APP, BST_CHECKED);
+                    int len = GetWindowTextLength(click_window) + 1;
+                    vector<wchar_t> buf(len);
+                    GetWindowText(click_window, &buf[0], len);
+                    wstring stxt = &buf[0];
+                    std::string converted_str = converter.to_bytes(stxt);
+ 
+                    //LONG style = GetWindowLong(click_window, GWL_STYLE);
+                    //style = (style & ~BS_BOTTOM) | BS_TOP;
+                    //style = WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_AUTOCHECKBOX;
+                    //SetWindowLong(click_window, GWL_STYLE, style);
+
+                    //if (SendDlgItemMessage(click_window, IDC_SELECT_APP, BM_GETCHECK, 0, 0)) {
+
+                    /*if (checked == BST_CHECKED) {
+                        CheckDlgButton(click_window, IDC_SELECT_APP, BST_UNCHECKED);
+                        std::cout << "Check" << std::endl;
+                    } else {
+                        CheckDlgButton(click_window, IDC_SELECT_APP, BST_CHECKED);
+                        std::cout << "Uncheck" << std::endl;
+                    }*/
+                    //exec("main.exe");
+
+                    string app_name = exec_map[stxt][0];
+                    string app_exec = exec_map[stxt][1];
+                    string app_title = exec_map[stxt][2];
+
+                    std::map<string, vector<string>>::iterator it;
+                    it = chosen_apps.find(app_name);
+                    if (it != chosen_apps.end()) {
+                        chosen_apps.erase(it);
+                    }
+                    else {
+                        chosen_apps[app_name] = { app_exec, app_title };
+                    }
+
+                    std::cout << converted_str << std::endl;
+
+                }
+                break;
+            case IDC_REGISTER_APPS:
+            {
+                std::map<string, vector<string>>::iterator it2;
+                for (it2 = chosen_apps.begin(); it2 != chosen_apps.end(); it2++) {
+                    string app_name = it2->first;
+                    string app_exec = it2->second[0];
+                    string app_title = it2->second[1];
+                }
+
+                //HINTERNET hIntSession =
+                //    ::InternetOpen(_T("MyApp"), INTERNET_OPEN_TYPE_DIRECT, NULL, NULL, 0);
+
+                //HINTERNET hHttpSession =
+                //    InternetConnect(hIntSession, _T("localhost"), 8081, 0, 0, INTERNET_SERVICE_HTTP, 0, NULL);
+
+                //HINTERNET hHttpRequest = HttpOpenRequest(
+                //    hHttpSession,
+                //    _T("GET"),
+                //    _T("registerApp"),
+                //    0, 0, 0, INTERNET_FLAG_RELOAD, 0);
+                //TCHAR* szHeaders = _T("Content-Type: text/html\nMySpecialHeder: whatever");
+                //CHAR szReq[1024] = "";
+                //if (!HttpSendRequest(hHttpRequest, szHeaders, _tcslen(szHeaders), szReq, strlen(szReq))) {
+                //    DWORD dwErr = GetLastError();
+                //    /// handle error
+                //}
+
+                //CHAR szBuffer[1025];
+                //DWORD dwRead = 0;
+                //while (::InternetReadFile(hHttpRequest, szBuffer, sizeof(szBuffer) - 1, &dwRead) && dwRead) {
+                //    szBuffer[dwRead] = 0;
+                //    OutputDebugStringA(szBuffer);
+                //    dwRead = 0;
+                //}
+
+                //::InternetCloseHandle(hHttpRequest);
+                //::InternetCloseHandle(hHttpSession);
+                //::InternetCloseHandle(hIntSession);
+
+                //exec("curl -X PUT -d \"{ \"string\" : \"my string 1212 \"}\" localhost:8081/registerApp");
+
+                CURL* curl;
+                CURcode res;
+
+                curl = curl_easy_init()
+                if (curl) {
+                    curl_easy_setopt(curl, CURLOPT_URL, "http://localhost:8082/registerApp");
+                    curl_easy_setopt(curl, CURLOPT_POST, 1);
+                    curl_easy_setopt(curl, CUROPT_POSTFIELDS, "name=Hieu&comment=A");
+                }
+
+                res = curl_easy_perform(curl);
+                curl_easy_cleanup(curl);
+
+                MessageBox(
+                    NULL,
+                    (LPCWSTR)L"Apps Registered",
+                    (LPCWSTR)L"Account Details",
+                    MB_DEFBUTTON2
+                );
+                break;
+            }
             default:
                 return DefWindowProc(hWnd, message, wParam, lParam);
             }
@@ -245,8 +391,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         {
             HWND click_window = WindowFromPoint(g_OrigCursorPos);
             std::cout << "CLICK" << std::endl;
-            exec("main.exe");
-            DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
+            //exec("main.exe");
+            //DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
         }
         break;
     default:

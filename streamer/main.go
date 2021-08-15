@@ -22,6 +22,7 @@ func main() {
 	server := cloudapp.NewServer(cfg)
 	server.NotifySignallingServer()
 	//server.Handle()
+	//server.ListenAndServe()
 
 	//go func() {
 	//	err := server.ListenAndServe()

@@ -7,17 +7,19 @@ import (
 	"fmt"
 	"github.com/DCloudGaming/cloud-morph-host/pkg/common/config"
 	"github.com/DCloudGaming/cloud-morph-host/pkg/common/cws"
+	//"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 	"log"
 	"net/http"
 	"net/url"
+	//"time"
 )
 
 type initData struct {
 	CurAppID string `json:"cur_app_id"`
 }
 
-//const addr string = ":8081"
+const addr string = ":8082"
 
 var signallingServerAddr = flag.String("addr", "localhost:8080", "http service address")
 
@@ -33,8 +35,9 @@ type StreamerHttp struct {
 }
 
 //func (params *StreamerHttp) registerAppApi(w http.ResponseWriter, req *http.Request) {
-//	fmt.Println("Receive Register App Requests")
-//}
+func registerAppApi(w http.ResponseWriter, req *http.Request) {
+		fmt.Println("Receive Register App Requests")
+}
 
 func NewServer(cfg config.Config) *Server {
 	return NewServerWithHTTPServerMux(cfg)
@@ -44,7 +47,7 @@ func NewServerWithHTTPServerMux(cfg config.Config) *Server {
 	//r := mux.NewRouter()
 	//svmux := &http.ServeMux{}
 	//svmux.Handle("/", r)
-
+	//
 	//httpServer := &http.Server{
 	//	Addr: addr,
 	//	ReadTimeout: 5 * time.Second,
@@ -58,7 +61,10 @@ func NewServerWithHTTPServerMux(cfg config.Config) *Server {
 	}
 
 	//params := &StreamerHttp{server: server}
-	//r.HandleFunc("/registerApp", params.registerAppApi)
+	http.HandleFunc("/registerApp", registerAppApi)
+	//.Host("http://localhost:8081").Methods("GET").Schemes("http")
+
+	go http.ListenAndServe(":8082", nil)
 
 	return server
 }
@@ -148,10 +154,10 @@ func (s *Server) NotifySignallingServer() {
 	sendRegisterApp(s)
 }
 
-func (o *Server) ListenAndServe() error {
-	log.Println("Host http is running at", o.httpServer.Addr)
-	return o.httpServer.ListenAndServe()
-}
+//func (o *Server) ListenAndServe() error {
+//	log.Println("Host http is running at", o.httpServer.Addr)
+//	//err := o.httpServer.ListenAndServe()
+//}
 
 func (o *Server) Shutdown() {
 }
