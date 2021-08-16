@@ -7,17 +7,21 @@ import (
 	"fmt"
 	"github.com/DCloudGaming/cloud-morph-host/pkg/common/config"
 	"github.com/DCloudGaming/cloud-morph-host/pkg/common/cws"
+	"strings"
+
+	//"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 	"log"
 	"net/http"
 	"net/url"
+	//"time"
 )
 
 type initData struct {
 	CurAppID string `json:"cur_app_id"`
 }
 
-//const addr string = ":8081"
+const addr string = ":8082"
 
 var signallingServerAddr = flag.String("addr", "localhost:8080", "http service address")
 
@@ -32,9 +36,19 @@ type StreamerHttp struct {
 	server *Server
 }
 
-//func (params *StreamerHttp) registerAppApi(w http.ResponseWriter, req *http.Request) {
-//	fmt.Println("Receive Register App Requests")
-//}
+func (params *StreamerHttp) registerAppApi(w http.ResponseWriter, req *http.Request) {
+	    // TODO: This is only temporary hack, to fix curl/curl.h in GUI C++ part
+	    s := strings.Split(req.RequestURI, "?data=")
+	    paramsQuery := strings.Split(s[1], ",")
+	    var paramsQueryTransform []string
+	    for _, x := range paramsQuery {
+	    	// TODO: Create .bat file contents here
+			paramsQueryTransform = append(paramsQueryTransform, "run-" + x + ".bat")
+		}
+	    sendRegisterApp(params.server, paramsQueryTransform)
+	    fmt.Println(params)
+		fmt.Println("Receive Register App Requests")
+}
 
 func NewServer(cfg config.Config) *Server {
 	return NewServerWithHTTPServerMux(cfg)
@@ -44,7 +58,7 @@ func NewServerWithHTTPServerMux(cfg config.Config) *Server {
 	//r := mux.NewRouter()
 	//svmux := &http.ServeMux{}
 	//svmux.Handle("/", r)
-
+	//
 	//httpServer := &http.Server{
 	//	Addr: addr,
 	//	ReadTimeout: 5 * time.Second,
@@ -57,8 +71,11 @@ func NewServerWithHTTPServerMux(cfg config.Config) *Server {
 		//httpServer: httpServer,
 	}
 
-	//params := &StreamerHttp{server: server}
-	//r.HandleFunc("/registerApp", params.registerAppApi)
+	params := &StreamerHttp{server: server}
+	http.HandleFunc("/registerApp", params.registerAppApi)
+	//.Host("http://localhost:8081").Methods("GET").Schemes("http")
+
+	go http.ListenAndServe(":8082", nil)
 
 	return server
 }
@@ -83,7 +100,7 @@ func (s *Server) initClientData(client *cws.Client) {
 	}, nil)
 }
 
-func sendRegisterApp(s *Server) {
+func sendRegisterApp(s *Server, app_paths []string) {
 	// Send registrationApp Metadata to server
 	for _, serviceClient := range s.capp.clients {
 
@@ -92,9 +109,9 @@ func sendRegisterApp(s *Server) {
 		}
 
 		data := registerData{
-			// TODO: User interact with GUI => Create those bat files. Then send
 			// selection of which bat files allowed to use.
-			AppPaths: []string{"run-notepad.bat", "run-chrome.bat"},
+			//AppPaths: []string{"run-notepad.bat", "run-chrome.bat"},
+			AppPaths: app_paths,
 		}
 		registerJsonData, err := json.Marshal(data)
 		if err != nil {
@@ -145,13 +162,13 @@ func (s *Server) NotifySignallingServer() {
 	}
 
 	// TODO: This function is invoked in registerAppApi, receive requests from GUI.
-	sendRegisterApp(s)
+	//sendRegisterApp(s)
 }
 
-func (o *Server) ListenAndServe() error {
-	log.Println("Host http is running at", o.httpServer.Addr)
-	return o.httpServer.ListenAndServe()
-}
+//func (o *Server) ListenAndServe() error {
+//	log.Println("Host http is running at", o.httpServer.Addr)
+//	//err := o.httpServer.ListenAndServe()
+//}
 
 func (o *Server) Shutdown() {
 }

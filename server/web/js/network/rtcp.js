@@ -163,15 +163,41 @@ const rtcp = (() => {
     isInputReady: () => inputReady,
     getConnection: () => connection,
     updateHosts: (hosts) => {
-      var parse_hosts = JSON.parse(hosts);
-      var chosen_host = parse_hosts[0];
-      log.info(`UpdateHosts signal ${hosts}`);
-      if (chosen_host) {
-        socket.send({
-          type: "registerBrowserHost",
-          data: JSON.stringify({host_id: chosen_host["host_id"], app: chosen_host["app_paths"][0]})
-        });
+      const tab = document.getElementById("hostAppsTable");
+      // const tabBody = document.getElementById("hostAppsTableBody");
+      // tabBody.remove();
+      var rowCount = tab.rows.length;
+      for (var i = 1; i < rowCount; i++) {
+        tab.deleteRow(1);
       }
+      var parse_hosts = JSON.parse(hosts);
+      for (let i = 0; i < parse_hosts.length; i++) {
+        var chosen_host = parse_hosts[i];
+        var host_id = chosen_host["host_id"];
+        for (let j = 0; j < chosen_host["app_paths"].length; j++) {
+          var app = chosen_host["app_paths"][j];
+          var tr = document.createElement('tr');
+          tr.innerHTML = '<td>' + host_id + '</td>' + '<td>' + app + '</td>';
+          var createClickHandler = function(row) {
+            return function() {
+              socket.send({
+                type: "registerBrowserHost",
+                data: JSON.stringify({host_id: host_id, app: app})
+              });
+            }
+          };
+          tr.onclick = createClickHandler(tr);
+          tab.appendChild(tr);
+        }
+      }
+      // var chosen_host = parse_hosts[0];
+      // log.info(`UpdateHosts signal ${hosts}`);
+      // if (chosen_host) {
+      //   socket.send({
+      //     type: "registerBrowserHost",
+      //     data: JSON.stringify({host_id: chosen_host["host_id"], app: chosen_host["app_paths"][0]})
+      //   });
+      // }
     },
   };
 })(event, socket, env, log);

@@ -50,7 +50,7 @@ type Packet struct {
 	Data string `json:"data"`
 }
 
-const startVideoRTPPort = 5005
+const startVideoRTPPort = 5006
 const startAudioRTPPort = 4004
 const eventKeyDown = "KEYDOWN"
 const eventKeyUp = "KEYUP"
@@ -126,8 +126,8 @@ func runApp(params []string, appPath string) {
 
 	// Launch application using exec
 	var cmd *exec.Cmd
-	//params = append([]string{"/C", appPath}, params...)
-	params = append([]string{"/C", "run-app.bat"}, params...)
+	params = append([]string{"/C", appPath}, params...)
+	//params = append([]string{"/C", "run-app.bat"}, params...)
 
 	cmd = exec.Command("cmd", params...)
 
