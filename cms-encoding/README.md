@@ -15,6 +15,7 @@ Currently, there are two ways to perform this task. With the first basic MVP, it
 - Step 1: Enquire the window title of the application you are interested in
 ```
 tasklist /v  /fo list
+tasklist /v  /fo list /FI "imagename eq chrome.exe"
 ```
 
 - Step 2: Records the application screen through gdigrab (there's another way through dshow, will check which one is better). Stream to rtp at port 5004. The "-pix_fmt" may differ based on different machines.
