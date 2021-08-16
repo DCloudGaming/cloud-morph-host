@@ -24,6 +24,7 @@
 #include <cstdint> 
 #include <wininet.h>  
 #include <tchar.h>
+#include <filesystem>
 //#include <curl/curl.h>
 
 #define MAX_LOADSTRING 100
@@ -68,14 +69,73 @@ LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 LRESULT CALLBACK    ButtonWndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
 
+LPWSTR ToLPCWSTR(string text)
+{
+    LPWSTR sw = (LPWSTR)text.c_str();
+    return sw;
+}
 
+std::string GetLastErrorAsString()
+{
+    //Get the error message ID, if any.
+    DWORD errorMessageID = ::GetLastError();
+    if (errorMessageID == 0) {
+        return std::string(); //No error message has been recorded
+    }
+
+    LPSTR messageBuffer = nullptr;
+
+    //Ask Win32 to give us the string version of that message ID.
+    //The parameters we pass in, tell Win32 to create the buffer that holds the message for us (because we don't yet know how long the message string will be).
+    size_t size = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+        NULL, errorMessageID, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&messageBuffer, 0, NULL);
+
+    //Copy the error message into a std::string.
+    std::string message(messageBuffer, size);
+
+    //Free the Win32's string's buffer.
+    LocalFree(messageBuffer);
+
+    return message;
+}
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
                      _In_ LPWSTR    lpCmdLine,
                      _In_ int       nCmdShow)
 {
-    exec("main.exe");
+    STARTUPINFO si;
+    PROCESS_INFORMATION pi;
+
+    //char tmp[256];
+    //GetCurrentDirectoryA(256, tmp);
+    //string tmp2(tmp);
+
+
+    //ZeroMemory(&si, sizeof(si));
+    //si.cb = sizeof(si);
+    //ZeroMemory(&pi, sizeof(pi));
+
+    ////string exec_file = tmp2 + "\/main.exe";
+    //string exec_file = ".\main.exe";
+ 
+    //if (!CreateProcess(NULL,   // No module name (use command line)
+    //    ToLPCWSTR(exec_file),        // Command line
+    //    NULL,           // Process handle not inheritable
+    //    NULL,           // Thread handle not inheritable
+    //    FALSE,          // Set handle inheritance to FALSE
+    //    0,              // No creation flags
+    //    NULL,           // Use parent's environment block
+    //    NULL,           // Use parent's starting directory 
+    //    &si,            // Pointer to STARTUPINFO structure
+    //    &pi)           // Pointer to PROCESS_INFORMATION structure
+    //    )
+    //{
+    //    string error = GetLastErrorAsString();
+    //    printf("CreateProcess failed (%d).\n", GetLastError());
+    //    return -1;
+    //}
+
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
 
@@ -87,7 +147,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     MyRegisterClass(hInstance);
 
     // Perform application initialization:
-    if (!InitInstance (hInstance, nCmdShow))
+    if (!InitInstance(hInstance, nCmdShow))
     {
         return FALSE;
     }
@@ -105,8 +165,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
             DispatchMessage(&msg);
         }
     }
-
-    return (int) msg.wParam;
+    //int status;
+    //waitpid(fork_rv, &status, 0);
+    return (int)msg.wParam;
 }
 
 
@@ -195,7 +256,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
        register_key_name,      // Button text 
        //WS_OVERLAPPEDWINDOW,
        WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // Styles 
-       10 + 500,         // x position 
+       10 + 400,         // x position 
        400,         // y position // TODO: Change y-position too when out of frame
        350,        // Button width
        100,        // Button height
@@ -204,6 +265,23 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
        //hInstance,
        (HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE),
        NULL);      // Pointer not needed.
+
+   //std::wstring connect_key = L"Connect to Server";
+   //const wchar_t* connect_key_name = connect_key.c_str();
+   //HWND hwndButton2 = CreateWindow(
+   //    L"BUTTON",  // Predefined class; Unicode assumed 
+   //    connect_key_name,      // Button text 
+   //    //WS_OVERLAPPEDWINDOW,
+   //    WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // Styles 
+   //    10 + 1000,         // x position 
+   //    400,         // y position // TODO: Change y-position too when out of frame
+   //    350,        // Button width
+   //    100,        // Button height
+   //    hWnd,     // Parent window
+   //    (HMENU)IDC_CONNECT_SERVER,       // No menu.
+   //    //hInstance,
+   //    (HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE),
+   //    NULL);      // Pointer not needed.
 
    ShowWindow(hWnd, nCmdShow);
    UpdateWindow(hWnd);
@@ -258,6 +336,20 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             case IDM_EXIT:
                 DestroyWindow(hWnd);
                 break;
+            //case IDC_CONNECT_SERVER:
+            //    exec("main.exe");
+            //    if (GetCursorPos(&g_OrigCursorPos))
+            //    {
+            //        using convert_type = std::codecvt_utf8<wchar_t>;
+            //        std::wstring_convert<convert_type, wchar_t> converter;
+
+            //        HWND click_window = WindowFromPoint(g_OrigCursorPos);
+            //        LONG style = GetWindowLong(click_window, GWL_STYLE);
+            //        style = BS_TOP;
+            //        SetWindowLong(click_window, GWL_STYLE, style);
+
+            //    }
+            //    break;
             case IDC_SELECT_APP:
                 std::cout << "Select App " << std::endl;
                 if (GetCursorPos(&g_OrigCursorPos))
