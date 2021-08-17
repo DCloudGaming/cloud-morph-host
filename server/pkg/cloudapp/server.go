@@ -4,9 +4,9 @@ package cloudapp
 import (
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"log"
 	"net/http"
-	"text/template"
 	"time"
 
 	"github.com/DCloudGaming/cloud-morph-host/pkg/common/config"
@@ -19,7 +19,9 @@ type initData struct {
 	CurAppID string `json:"cur_app_id"`
 }
 
-const embedPage string = "web/index.html"
+const embedPageIndex string = "web/index.html"
+const embedPagePlay string = "web/play.html"
+const embedPageRegister string = "web/register.html"
 const addr string = ":8080"
 
 type Server struct {
@@ -44,7 +46,27 @@ func NewServerWithHTTPServerMux(cfg config.Config, r *mux.Router, svmux *http.Se
 
 	r.HandleFunc("/",
 		func(w http.ResponseWriter, r *http.Request) {
-			tmpl, err := template.ParseFiles(embedPage)
+			tmpl, err := template.ParseFiles(embedPageIndex)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			tmpl.Execute(w, nil)
+		},
+	)
+	r.HandleFunc("/register",
+		func(w http.ResponseWriter, r *http.Request) {
+			tmpl, err := template.ParseFiles(embedPageRegister)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			tmpl.Execute(w, nil)
+		},
+	)
+	r.HandleFunc("/play",
+		func(w http.ResponseWriter, r *http.Request) {
+			tmpl, err := template.ParseFiles(embedPagePlay)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -166,7 +188,6 @@ func (s *Server) Client(w http.ResponseWriter, r *http.Request) {
 		s.capp.RemoveClient(clientID)
 		log.Println("Closed connection")
 	}(wsClient)
-
 
 	wsClient.Send(cws.WSPacket{
 		Type: "hostsUpdated",

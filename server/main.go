@@ -46,7 +46,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	http.Handle("/assets/", http.StripPrefix("/assets", http.FileServer(http.Dir("./assets"))))
+	// http.Handle("/assets/", http.StripPrefix("/assets", http.FileServer(http.Dir("./assets"))))
 	server := cloudapp.NewServer(cfg)
 
 	go func() {
@@ -64,4 +64,3 @@ func main() {
 		server.Shutdown()
 	}
 }
-
