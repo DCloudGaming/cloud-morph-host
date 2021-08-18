@@ -17,6 +17,7 @@
 #define IDC_STATIC				-1
 #define IDC_SELECT_APP  (100)
 #define IDC_REGISTER_APPS (101)
+#define IDC_CONNECT_SERVER (102)
 #endif
 // Next default values for new objects
 //
