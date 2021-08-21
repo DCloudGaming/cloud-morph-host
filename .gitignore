@@ -7,3 +7,5 @@ server/vendor/
 streamer/.DS_Store
 streamer/.idea/
 streamer/vendor/
+node_modules
+out/
