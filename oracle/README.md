@@ -1,3 +1,4 @@
+# Start Chainlink Node
 1/ Start Postgres 
 + postgres -D /usr/local/var/postgres; psql; CREATE USER root; ALTER USER root PASSWORD 'root'
 OR
@@ -21,3 +22,9 @@ cd chainlink && docker run -p 6688:6688 -v chainlink:/chainlink -it --env-file=.
 OR 
 docker run --name chainlink_rinkeby --network host -p 6688:6688 -v chainlink:/chainlink -it --env-file=chainlink/.env smartcontract/chainlink:0.10.8 local n
 (pass: HIEU1998!!!1998Hieu)
+
+# Deploy smart contracts
+Use online IDE https://remix.ethereum.org/
+
+https://titanwolf.org/Network/Articles/Article?AID=d979ddb0-3f53-4d6a-a82d-9e5729bee3ab#gsc.tab=0
+remixd -s /Users/hieuletrung/Documents/repos/side_projects/cloud-morph-host/oracle/contracts --remix-ide http://127.0.0.1:8080
