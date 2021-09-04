@@ -51,9 +51,8 @@ contract DcloToken is TimeLockedToken {
         if (!gameSessionId[gameSessionId].isValue) {
             if (sharedVault[msg.sender] < _amount) {
                 assert(transfer(address(this), _amount - sharedVault[msg.sender]));
-                sharedVault[
+                sharedVault[msg.sender] = _amount;
             }
-
             gameSessionInfo[gameSessionId] = (_streamer, msg.sender, _amount);
         }
     }
@@ -64,7 +63,7 @@ contract DcloToken is TimeLockedToken {
             player = gameSessionId[gameSessionId][1];
             maxAmount = gameSessionId[gameSessionId][2];
             require(_amount <= maxAmount, "Cannot claim more than initial deposit");
-            assert(_transfer(address(this), streamer, _amount))
+            assert(_transfer(address(this), streamer, _amount));
             // TODO: prevent potential issue
             sharedVault[player] -=  _amount;
         }
