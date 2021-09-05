@@ -2,6 +2,7 @@ package cloudapp
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"sync"
 
@@ -20,7 +21,7 @@ var appEventTypes []string = []string{"MOUSEDOWN", "MOUSEUP", "MOUSEMOVE", "KEYD
 
 type Service struct {
 	clients map[string]*Client
-	hosts map[string]*Client
+	hosts   map[string]*Client
 	ccApp   CloudAppClient
 	config  config.Config
 	// communicate with cloud app
@@ -85,6 +86,7 @@ func NewServiceClient(clientID string, ws *cws.Client, appEvents chan Packet, ss
 }
 
 func (c *Client) Handle() {
+	fmt.Println("RUN app")
 	defer func() {
 		if r := recover(); r != nil {
 			log.Println("Recovered when sent to close Image Channel")
@@ -268,8 +270,8 @@ func NewCloudService(cfg config.Config) *Service {
 		clients:   map[string]*Client{},
 		appEvents: appEvents,
 		// ccApp is only initiated later in "init" websocket message
-		ccApp:     NewCloudAppClient(cfg, appEvents, ""),
-		config:    cfg,
+		ccApp:  NewCloudAppClient(cfg, appEvents, ""),
+		config: cfg,
 	}
 
 	return s

@@ -47,6 +47,7 @@ app.on('window-all-closed', function () {
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
 const { ipcMain } = require('electron'); // include the ipc module to communicate with render process ie to receive the message from render process
+const { hostname } = require('os')
 
 //ipcMain.on will receive the “btnclick” info from renderprocess 
 ipcMain.on("btnclick", function (event, arg) {
@@ -71,7 +72,9 @@ ipcMain.on("btnclick", function (event, arg) {
 
 //ipcMain.on will receive the “btnclick” info from renderprocess 
 ipcMain.on("register", function (event, arg) {
-  const { net } = require('electron')
+  // const { net } = require('electron')
+  const electron = require('electron');
+  const net = electron.net;
   // const { dialog } = require('electron')
   // dialog.showOpenDialog({ properties: ['openFile', 'multiSelections'] }).then(result => {
   //   console.log(result.filePaths)
@@ -85,14 +88,41 @@ ipcMain.on("register", function (event, arg) {
   console.log("Send HTTP register request to notepad")
 
   const registerURL = "";
+  // const request = net.request({
+  //   method: 'GET',
+  //   protocol: 'http:',
+  //   hostname: 'localhost',
+  //   port: 8082,
+  //   path: '/registerApp?data=notepad'
+  // })
+  var postData = JSON.stringify([{ "app_name": "Notepad", "app_path": "Notepad.exe" }]);
+  console.log(1);
+  console.log(postData);
   const request = net.request({
-    method: 'GET',
+    method: 'POST',
+    // body: postData,
     protocol: 'http:',
     hostname: 'localhost',
     port: 8082,
-    path: '/registerApp?data=notepad'
+    path: '/registerApp',
+    headers: {
+      "Content-Type": "application/json",
+    },
   })
-  console.log(request);
+  // const request = net.request({
+  //   body: postData,
+  //   protocol: 'http:',
+  //   method: "GET",
+  //   port: 8082,
+  //   hostname: 'localhost',
+  //   path: '/registerApp',
+  //   redirect: 'follow',
+  //   headers: {
+  //     'Content-Type': 'application/json',
+  //     'Content-Length': postData.length
+  //   }
+  // })
+  console.log(2);
   request.on('response', (response) => {
     console.log(`STATUS: ${response.statusCode}`)
     console.log(`HEADERS: ${JSON.stringify(response.headers)}`)
@@ -103,5 +133,16 @@ ipcMain.on("register", function (event, arg) {
       console.log('No more data in response.')
     })
   })
-  request.end()
+
+  request.on('error', (error) => {
+    console.error(error)
+  })
+  console.log(3);
+  console.log(postData);
+  console.log(request);
+  request.write(postData);
+
+
+  console.log(4);
+  request.end();
 });

@@ -41,7 +41,7 @@ type ccImpl struct {
 	screenHeight float32
 	ssrc         uint32
 	payloadType  uint8
-	cfg config.Config
+	cfg          config.Config
 }
 
 // Packet represents a packet in cloudapp
@@ -66,7 +66,7 @@ func NewCloudAppClient(cfg config.Config, inputEvents chan Packet, appPath strin
 	c := &ccImpl{
 		videoStream: make(chan *rtp.Packet, 1),
 		audioStream: make(chan *rtp.Packet, 1),
-		cfg: cfg,
+		cfg:         cfg,
 		//inputEvents: inputEvents,
 	}
 
@@ -126,7 +126,7 @@ func runApp(params []string, appPath string) {
 
 	// Launch application using exec
 	var cmd *exec.Cmd
-	params = append([]string{"/C", appPath}, params...)
+	params = append([]string{"/C", "run-app.bat", appPath, "Untitled - Notepad"}, params...)
 	//params = append([]string{"/C", "run-app.bat"}, params...)
 
 	cmd = exec.Command("cmd", params...)
@@ -147,7 +147,6 @@ func runApp(params []string, appPath string) {
 			log.Println(string(line))
 		}
 	}()
-	log.Println("execed run-client.sh")
 	cmd.Wait()
 }
 
@@ -159,7 +158,7 @@ func (c *ccImpl) launchApp(curVideoRTPPort int, curAudioRTPPort int, cfg config.
 	} else {
 		params = append(params, "")
 	}
-	params = append(params, []string{strconv.Itoa(cfg.ScreenWidth), strconv.Itoa(cfg.ScreenHeight)}...)
+	params = append(params, []string{strconv.Itoa(cfg.ScreenWidth), strconv.Itoa(cfg.ScreenHeight), appPath}...)
 
 	runApp(params, appPath)
 	// update flag
