@@ -4,6 +4,7 @@ package cloudapp
 import (
 	"bufio"
 	"container/ring"
+	"fmt"
 	"log"
 	"net"
 	"os"
@@ -147,7 +148,7 @@ func runApp(params []string, appPath string) {
 			log.Println(string(line))
 		}
 	}()
-	cmd.Wait()
+	// cmd.Wait()
 }
 
 // done to forcefully stop all processes
@@ -178,17 +179,22 @@ func (c *ccImpl) Handle() {
 
 // newLocalStreamListener returns RTP listener: listener and (Synchronization source) SSRC of that listener
 func (c *ccImpl) newLocalStreamListener(rtpPort int) (*net.UDPConn, uint32) {
+	fmt.Println("new Local Stream")
 	// Open a UDP Listener for RTP Packets on port 5004
 	listener, err := net.ListenUDP("udp", &net.UDPAddr{IP: net.ParseIP("localhost"), Port: rtpPort})
 	if err != nil {
-		panic(err)
+		fmt.Errorf("%v", err)
+		// panic(err)
+		return nil, 0
 	}
 
 	// Listen for a single RTP Packet, we need this to determine the SSRC
 	inboundRTPPacket := make([]byte, 4096) // UDP MTU
 	n, _, err := listener.ReadFromUDP(inboundRTPPacket)
 	if err != nil {
-		panic(err)
+		fmt.Errorf("%v", err)
+		// panic(err)
+		return nil, 0
 	}
 
 	// Unmarshal the incoming packet
