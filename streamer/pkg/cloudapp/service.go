@@ -2,7 +2,6 @@ package cloudapp
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"sync"
 
@@ -86,7 +85,6 @@ func NewServiceClient(clientID string, ws *cws.Client, appEvents chan Packet, ss
 }
 
 func (c *Client) Handle() {
-	fmt.Println("RUN app")
 	defer func() {
 		if r := recover(); r != nil {
 			log.Println("Recovered when sent to close Image Channel")
