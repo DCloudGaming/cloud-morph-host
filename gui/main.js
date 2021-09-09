@@ -30,6 +30,18 @@ function createWindow() {
 app.whenReady().then(() => {
   createWindow()
 
+  // Run Streamer app
+  var child = require('child_process').execFile;
+  var executablePath = "../streamer/main.exe";
+  child(executablePath, function (err, data) {
+    if (err) {
+      console.error(err);
+      return;
+    }
+    console.log("Loaded streamer");
+    console.log(data.toString());
+  });
+
   app.on('activate', function () {
     // On macOS it's common to re-create a window in the app when the
     // dock icon is clicked and there are no other windows open.

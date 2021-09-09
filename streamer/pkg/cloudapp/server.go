@@ -44,14 +44,11 @@ type appPacket struct {
 
 func (params *StreamerHttp) registerAppApi(w http.ResponseWriter, req *http.Request) {
 	fmt.Println("received register package")
-	// Declare a new Person struct.
 	var appBody []appPacket
 	json.NewDecoder(req.Body).Decode(&appBody)
 
 	// TODO: Create .bat file contents here
 	sendRegisterApp(params.server, appBody)
-	// fmt.Println(params)
-	// fmt.Println("Receive Register App Requests")
 }
 
 func NewServer(cfg config.Config) *Server {
