@@ -5,15 +5,16 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+
 	"github.com/DCloudGaming/cloud-morph-host/pkg/common/config"
 	"github.com/DCloudGaming/cloud-morph-host/pkg/common/cws"
-	"strings"
 
 	//"github.com/gorilla/mux"
-	"github.com/gorilla/websocket"
 	"log"
 	"net/http"
 	"net/url"
+
+	"github.com/gorilla/websocket"
 	//"time"
 )
 
@@ -36,18 +37,18 @@ type StreamerHttp struct {
 	server *Server
 }
 
+type appPacket struct {
+	AppName string `json:"app_name"`
+	AppPath string `json:"app_path"`
+}
+
 func (params *StreamerHttp) registerAppApi(w http.ResponseWriter, req *http.Request) {
-	    // TODO: This is only temporary hack, to fix curl/curl.h in GUI C++ part
-	    s := strings.Split(req.RequestURI, "?data=")
-	    paramsQuery := strings.Split(s[1], ",")
-	    var paramsQueryTransform []string
-	    for _, x := range paramsQuery {
-	    	// TODO: Create .bat file contents here
-			paramsQueryTransform = append(paramsQueryTransform, "run-" + x + ".bat")
-		}
-	    sendRegisterApp(params.server, paramsQueryTransform)
-	    fmt.Println(params)
-		fmt.Println("Receive Register App Requests")
+	fmt.Println("received register package")
+	var appBody []appPacket
+	json.NewDecoder(req.Body).Decode(&appBody)
+
+	// TODO: Create .bat file contents here
+	sendRegisterApp(params.server, appBody)
 }
 
 func NewServer(cfg config.Config) *Server {
@@ -100,18 +101,18 @@ func (s *Server) initClientData(client *cws.Client) {
 	}, nil)
 }
 
-func sendRegisterApp(s *Server, app_paths []string) {
+func sendRegisterApp(s *Server, appBody []appPacket) {
 	// Send registrationApp Metadata to server
 	for _, serviceClient := range s.capp.clients {
 
 		type registerData struct {
-			AppPaths []string `json:"app_paths"`
+			Apps []appPacket `json:"apps"`
 		}
 
 		data := registerData{
 			// selection of which bat files allowed to use.
 			//AppPaths: []string{"run-notepad.bat", "run-chrome.bat"},
-			AppPaths: app_paths,
+			Apps: appBody,
 		}
 		registerJsonData, err := json.Marshal(data)
 		if err != nil {
@@ -121,7 +122,7 @@ func sendRegisterApp(s *Server, app_paths []string) {
 		serviceClient.ws.Send(cws.WSPacket{
 			Type: "registerApps",
 			Data: string(registerJsonData),
-			}, nil)
+		}, nil)
 	}
 }
 

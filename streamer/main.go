@@ -1,11 +1,12 @@
 package main
 
 import (
-	"github.com/DCloudGaming/cloud-morph-host/pkg/common/config"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
+
+	"github.com/DCloudGaming/cloud-morph-host/pkg/common/config"
 
 	"github.com/DCloudGaming/cloud-morph-host/pkg/cloudapp"
 )
@@ -13,6 +14,7 @@ import (
 const configFilePath = "./config.yaml"
 
 func main() {
+	// TODO: Remove Config, GUI will create the setting
 	cfg, err := config.ReadConfig(configFilePath)
 	if err != nil {
 		panic(err)
@@ -39,4 +41,3 @@ func main() {
 		server.Shutdown()
 	}
 }
-

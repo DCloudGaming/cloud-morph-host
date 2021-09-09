@@ -7,14 +7,19 @@ Windows client app for host on cloud-morph.
 
 ## Getting started
 ### 1. Start server 
-```bigquery
+```
 cd server
 go run main.go
 ```
-### 2. Start player client
-Open `http://localhost:8080/`
-### 3. Start streamer host
-```bigquery
-cd streamer
-go run main.go
+### 2. Run GUI, install Electron
 ```
+cd gui
+npm start
+```
+### 3. Open App on browser
+1. Open `http://localhost:8080/play`
+2. Click `Register` Button in GUI
+3. Click Notepad entry
+
+## FAQ
+If cannot run, there maybe some duplicate process running. We can fix but in the mean time, we can restart everything
