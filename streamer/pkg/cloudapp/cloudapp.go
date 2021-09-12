@@ -127,10 +127,10 @@ func runApp(params []string, appPath string) {
 
 	// Launch application using exec
 	var cmd *exec.Cmd
-	params = append([]string{"/C", "run-app.bat", appPath, "Untitled - Notepad"}, params...)
+	params = append([]string{"/C", "run-app.ps1", appPath, "Untitled - Notepad"}, params...)
 	//params = append([]string{"/C", "run-app.bat"}, params...)
 
-	cmd = exec.Command("cmd", params...)
+	cmd = exec.Command("powershell", params...)
 
 	cmd.Env = os.Environ()
 	stdout, err := cmd.StdoutPipe()
