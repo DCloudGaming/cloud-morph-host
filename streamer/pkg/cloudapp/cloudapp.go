@@ -127,7 +127,7 @@ func runApp(params []string, appPath string) {
 
 	// Launch application using exec
 	var cmd *exec.Cmd
-	params = append([]string{"/C", "run-app.ps1", appPath, "Untitled - Notepad"}, params...)
+	params = append([]string{"-ExecutionPolicy", "Bypass", "-F", "run-app.ps1", appPath}, params...)
 	//params = append([]string{"/C", "run-app.bat"}, params...)
 
 	cmd = exec.Command("powershell", params...)
@@ -262,7 +262,7 @@ func (c *ccImpl) listenVideoStream() {
 	// Broadcast video stream
 	go func() {
 		defer func() {
-			c.videoListener.Close()
+			// c.videoListener.Close()
 			log.Println("Closing app VM")
 		}()
 		r := ring.New(120)
@@ -277,6 +277,9 @@ func (c *ccImpl) listenVideoStream() {
 		for {
 			inboundRTPPacket := r.Value.([]byte) // UDP MTU
 			r = r.Next()
+			if c.videoListener == nil {
+				continue
+			}
 			n, _, err := c.videoListener.ReadFrom(inboundRTPPacket)
 			if err != nil {
 				log.Printf("error during read: %s", err)
