@@ -31,16 +31,16 @@ app.whenReady().then(() => {
   createWindow()
 
   // Run Streamer app
-  var child = require('child_process').execFile;
-  var executablePath = "../streamer/main.exe";
-  child(executablePath, function (err, data) {
-    if (err) {
-      console.error(err);
-      return;
-    }
-    console.log("Loaded streamer");
-    console.log(data.toString());
-  });
+  // var child = require('child_process').execFile;
+  // var executablePath = "../streamer/main.exe";
+  // child(executablePath, function (err, data) {
+  //   if (err) {
+  //     console.error(err);
+  //     return;
+  //   }
+  //   console.log("Loaded streamer");
+  //   console.log(data.toString());
+  // });
 
   app.on('activate', function () {
     // On macOS it's common to re-create a window in the app when the
@@ -84,49 +84,51 @@ ipcMain.on("btnclick", function (event, arg) {
 
 //ipcMain.on will receive the “btnclick” info from renderprocess 
 ipcMain.on("register", function (event, arg) {
-  const { net } = require('electron')
-  const electron = require('electron');
-  // const { dialog } = require('electron')
-  // dialog.showOpenDialog({ properties: ['openFile', 'multiSelections'] }).then(result => {
-  //   console.log(result.filePaths)
-  //   // inform the render process that the assigned task finished. Show a message in html
-  //   // event.sender.send in ipcMain will return the reply to renderprocess
-  //   event.sender.send("registerFinished", result.filePaths[0]);
-  // }).catch(err => {
-  //   console.log(err)
-  // })
+  const { net, dialog, electron } = require('electron')
 
-  console.log("Send HTTP register request to notepad")
+  const handleRegister = (path) => {
+    event.sender.send("registerFinished", path);
 
-  const registerURL = "";
-  var postData = JSON.stringify([{ "app_name": "Notepad", "app_path": "Notepad.exe" }]);
-  console.log(1);
-  console.log(postData);
-  const request = net.request({
-    method: 'POST',
-    protocol: 'http:',
-    hostname: 'localhost',
-    port: 8082,
-    path: '/registerApp',
-    headers: {
-      "Content-Type": "application/json",
-    },
-  })
-  console.log(2);
-  request.on('response', (response) => {
-    console.log(`STATUS: ${response.statusCode}`)
-    console.log(`HEADERS: ${JSON.stringify(response.headers)}`)
-    response.on('data', (chunk) => {
-      console.log(`BODY: ${chunk}`)
+    const registerURL = "";
+    var postData = JSON.stringify([{ "app_name": "Neighbour", "app_path": path }]);
+    console.log("Send HTTP register request to notepad ", postData)
+    const request = net.request({
+      method: 'POST',
+      protocol: 'http:',
+      hostname: 'localhost',
+      port: 8082,
+      path: '/registerApp',
+      headers: {
+        "Content-Type": "application/json",
+      },
     })
-    response.on('end', () => {
-      console.log('No more data in response.')
+
+    console.log(2);
+    request.on('response', (response) => {
+      console.log(`STATUS: ${response.statusCode}`)
+      console.log(`HEADERS: ${JSON.stringify(response.headers)}`)
+      response.on('data', (chunk) => {
+        console.log(`BODY: ${chunk}`)
+      })
+      response.on('end', () => {
+        console.log('No more data in response.')
+      })
     })
+
+    request.on('error', (error) => {
+      console.error(error)
+    })
+    request.write(postData);
+    request.end();
+  }
+
+  dialog.showOpenDialog({ properties: ['openFile', 'multiSelections'] }).then(result => {
+    console.log(result.filePaths[0])
+    // inform the render process that the assigned task finished. Show a message in html
+    // event.sender.send in ipcMain will return the reply to renderprocess
+    handleRegister(result.filePaths[0])
+  }).catch(err => {
+    console.log(err)
   })
 
-  request.on('error', (error) => {
-    console.error(error)
-  })
-  request.write(postData);
-  request.end();
 });
