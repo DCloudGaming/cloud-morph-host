@@ -2,6 +2,7 @@ package model
 
 import (
 	"github.com/DCloudGaming/cloud-morph-host/pkg/utils"
+	"github.com/pkg/errors"
 	"gorm.io/gorm"
 )
 
@@ -43,6 +44,11 @@ func (r *userRepo) Auth(walletAddress string, signature string) (*User, error) {
 	var msg string
 	msg = "I am signing my one-time nonce: " + user.nonce
 
+	var verifyResult = utils.VerifySig(user.wallet_address, signature, []byte(msg))
+
+	if !verifyResult {
+		return nil, errors.New("Wrong signature")
+	}
 	var newNonce string
 	newNonce = utils.GenerateRandomString(10)
 	r.db.Model(&user).Update("nonce", newNonce)

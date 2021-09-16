@@ -89,7 +89,7 @@ func auth(sharedEnv env.SharedEnv, w http.ResponseWriter, r *http.Request) http.
 	}
 
 	dbUser, err := sharedEnv.UserRepo().Auth(req.walletAddress, req.signature)
-	if err != nil {
+	if err != nil  {
 		return write.Error(err)
 	}
 

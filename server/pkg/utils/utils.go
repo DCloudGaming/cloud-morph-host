@@ -50,7 +50,7 @@ func GenerateRandomString(n int) string {
 	return string(b)
 }
 
-func verifySig(from, sigHex string, msg []byte) bool {
+func VerifySig(from, sigHex string, msg []byte) bool {
 	fromAddr := common.HexToAddress(from)
 
 	sig := hexutil.MustDecode(sigHex)
