@@ -1,4 +1,7 @@
-const getWeb3Sync = async () => {
+// TODO: Move to env file
+const APP_BACKEND_URL = "http://127.0.0.1/api"
+
+const handleWalletClick = async () => {
     console.log("Get web3 Start1");
     if (window.ethereum) {
         try {
@@ -9,6 +12,7 @@ const getWeb3Sync = async () => {
             if (accounts.length > 0) {
                 window.currentEthAccount = accounts[0];
                 $('#walletAddress').html(accounts[0]);
+                handleClick(window.currentEthAccount);
             }
         } catch (error) {
             if (error.code === 4001) {
@@ -17,4 +21,57 @@ const getWeb3Sync = async () => {
             // setError(error);
         }
     }
-}
+};
+
+const handleClick = (walletAddress) => {
+    // --snip--
+    fetch(`${APP_BACKEND_URL}/users`, {
+        body: JSON.stringify({"walletAddress": walletAddress}),
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        method: 'GET'
+    }).then(response => response.json())
+        // If yes, retrieve it. If no, create it.
+        .then(
+            users => (users.length ? users[0] : handleSignup(walletAddress))
+        )
+        // Popup MetaMask confirmation modal to sign message
+        .then(handleSignMessage)
+        // Send signature to back end on the /auth route
+        .then(handleAuthenticate)
+    // --snip--
+};
+
+const handleSignup = walletAddress => {
+    fetch(`${APP_BACKEND_URL}/users/signup`, {
+        body: JSON.stringify({"walletAddress": walletAddress}),
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        method: 'POST'
+    }).then(response => response.json());
+};
+
+const handleSignMessage = ({ walletAddress, nonce }) => {
+    return new Promise((resolve, reject) =>
+        web3.personal.sign(
+            web3.fromUtf8(`I am signing my one-time nonce: ${nonce}`),
+            walletAddress,
+            (err, signature) => {
+                if (err) return reject(err);
+                return resolve({ walletAddress, signature });
+            }
+        )
+    );
+};
+
+const handleAuthenticate = ({ walletAddress, signature }) => {
+    fetch(`${APP_BACKEND_URL}/users/auth`, {
+        body: JSON.stringify({ "walletAddress": walletAddress, "signature": signature }),
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        method: 'POST'
+    }).then(response => response.json());
+};
