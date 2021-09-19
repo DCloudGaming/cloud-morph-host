@@ -82,6 +82,26 @@ ipcMain.on("btnclick", function (event, arg) {
   event.sender.send("btnclick-task-finished", "yes");
 });
 
+ipcMain.on("connectWallet", function(event, arg) {
+  const { net } = require('electron')
+  const electron = require('electron');
+  console.log("Connect Wallet Request");
+
+  var walletAddress = document.getElementById('walletAddress').value;
+  var postData = JSON.stringify([{"wallet_address": walletAddress}]);
+  const request = net.request({
+    method: 'POST',
+    protocol: 'http:',
+    hostname: 'localhost',
+    port: 8082,
+    path: '/connectWallet',
+    headers: {
+      "Content-Type": "application/json",
+    },
+  })
+
+});
+
 //ipcMain.on will receive the “btnclick” info from renderprocess 
 ipcMain.on("register", function (event, arg) {
   const { net } = require('electron')
@@ -123,6 +143,8 @@ ipcMain.on("register", function (event, arg) {
       console.log('No more data in response.')
     })
   })
+
+
 
   request.on('error', (error) => {
     console.error(error)
