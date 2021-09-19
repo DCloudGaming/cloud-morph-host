@@ -90,7 +90,7 @@ ipcMain.on("register", function (event, arg) {
     event.sender.send("registerFinished", path);
 
     const registerURL = "";
-    var postData = JSON.stringify([{ "app_name": "Neighbour", "app_path": path }]);
+    var postData = JSON.stringify([{ "app_path": path }]);
     console.log("Send HTTP register request to notepad ", postData)
     const request = net.request({
       method: 'POST',

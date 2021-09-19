@@ -9,6 +9,7 @@ import (
 	"net"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strconv"
 
 	"github.com/DCloudGaming/cloud-morph-host/pkg/common/config"
@@ -153,7 +154,9 @@ func runApp(params []string, appPath string) {
 
 // done to forcefully stop all processes
 func (c *ccImpl) launchApp(curVideoRTPPort int, curAudioRTPPort int, cfg config.Config, appPath string) chan struct{} {
-	params := []string{cfg.Path, cfg.AppFile, cfg.WindowTitle}
+	_, filename := filepath.Split(appPath)
+	fmt.Println("Running ", appPath, " ", filename)
+	params := []string{appPath, filename}
 	if cfg.HWKey {
 		params = append(params, "game")
 	} else {
