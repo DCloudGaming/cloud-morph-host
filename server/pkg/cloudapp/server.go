@@ -47,6 +47,22 @@ func NewServer(cfg config.Config) *Server {
 	return NewServerWithHTTPServerMux(cfg, r, svmux)
 }
 
+func (s *Server) ApiHandler(w http.ResponseWriter, r *http.Request) {
+	var head string
+	head, r.URL.Path = utils.ShiftPath(r.URL.Path)
+	if head != "api" {
+		write.Error(errors.RouteNotFound, w, r)
+	}
+
+	head, r.URL.Path = utils.ShiftPath(r.URL.Path)
+	switch head {
+	case "users":
+		handler.UserHandler(s.shared_env, w, r)
+	default:
+		write.Error(errors.RouteNotFound, w, r)
+	}
+}
+
 func NewServerWithHTTPServerMux(cfg config.Config, r *mux.Router, svmux *http.ServeMux) *Server {
 	server := &Server{}
 
@@ -83,6 +99,8 @@ func NewServerWithHTTPServerMux(cfg config.Config, r *mux.Router, svmux *http.Se
 	// Websocket
 	r.HandleFunc("/client", server.Client)
 	r.HandleFunc("/host", server.Host)
+
+	// HTTP
 	r.HandleFunc("/api", server.ApiHandler)
 
 	httpServer := &http.Server{
@@ -100,22 +118,6 @@ func NewServerWithHTTPServerMux(cfg config.Config, r *mux.Router, svmux *http.Se
 	server.shared_env = shared_env
 
 	return server
-}
-
-func (s *Server) ApiHandler(w http.ResponseWriter, r *http.Request) http.HandlerFunc {
-	var head string
-	head, r.URL.Path = utils.ShiftPath(r.URL.Path)
-	if head != "api" {
-		return write.Error(errors.RouteNotFound)
-	}
-
-	head, r.URL.Path = utils.ShiftPath(r.URL.Path)
-	switch head {
-	case "users":
-		return handler.UserHandler(s.shared_env, w, r)
-	default:
-		return write.Error(errors.RouteNotFound)
-	}
 }
 
 func (s *Server) Host(w http.ResponseWriter, r *http.Request) {

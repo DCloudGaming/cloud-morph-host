@@ -1,5 +1,5 @@
 // TODO: Move to env file
-const APP_BACKEND_URL = "http://127.0.0.1/api"
+const APP_BACKEND_URL = "http://127.0.0.1/api";
 
 const handleWalletClick = async () => {
     console.log("Get web3 Start1");
