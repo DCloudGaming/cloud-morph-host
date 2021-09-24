@@ -9,12 +9,8 @@ import (
 	"github.com/DCloudGaming/cloud-morph-host/pkg/env"
 	"github.com/DCloudGaming/cloud-morph-host/pkg/errors"
 	"github.com/DCloudGaming/cloud-morph-host/pkg/model"
-	jwt "github.com/dgrijalva/jwt-go"
-	//"github.com/karlkeefer/pngr/golang/env"
-	//"github.com/karlkeefer/pngr/golang/errors"
-	//"github.com/karlkeefer/pngr/golang/models/user"
-	//"github.com/karlkeefer/pngr/golang/server/write"
 	"github.com/DCloudGaming/cloud-morph-host/pkg/write"
+	jwt "github.com/dgrijalva/jwt-go"
 )
 
 // jwt-cookie building and parsing
@@ -39,19 +35,19 @@ type claims struct {
 }
 
 // RequireAuth middleware makes sure the user exists based on their JWT
-func RequireAuth(minStatus model.Status, e env.SharedEnv, w http.ResponseWriter, r *http.Request) (bool) {
+func RequireAuth(minStatus model.Status, e env.SharedEnv, w http.ResponseWriter, r *http.Request) (*model.User, bool) {
 	u, err := HandleUserCookie(e, w, r)
 	if err != nil {
 		write.Error(err, w, r)
-		return false
+		return u, false
 	}
 
 	if u.Status < minStatus {
 		write.Error(errors.RouteUnauthorized, w, r)
-		return false
+		return u, false
 	}
 
-	return true
+	return u, true
 }
 
 // WriteUserCookie encodes a user's JWT and sets it as an httpOnly & Secure cookie
@@ -61,7 +57,7 @@ func WriteUserCookie(w http.ResponseWriter, u *model.User) {
 		Value:    encodeUser(u),
 		Path:     "/",
 		HttpOnly: true,
-		Secure:   true,
+		//Secure:   true,
 	})
 }
 

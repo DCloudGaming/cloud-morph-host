@@ -2,19 +2,19 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/DCloudGaming/cloud-morph-host/pkg/env"
 	"github.com/DCloudGaming/cloud-morph-host/pkg/errors"
+	"github.com/DCloudGaming/cloud-morph-host/pkg/jwt"
 	"github.com/DCloudGaming/cloud-morph-host/pkg/model"
 	"github.com/DCloudGaming/cloud-morph-host/pkg/utils"
 	"github.com/DCloudGaming/cloud-morph-host/pkg/write"
-	"github.com/DCloudGaming/cloud-morph-host/pkg/jwt"
 	"net/http"
 )
 
 func UserHandler(sharedEnv *env.SharedEnv) (f func(w http.ResponseWriter, r *http.Request)) {
 	return func(w http.ResponseWriter, r *http.Request) {
-
-		var allowJwt = jwt.RequireAuth(model.StatusUnverified, *sharedEnv, w, r)
+		u, allowJwt := jwt.RequireAuth(model.StatusUnverified, *sharedEnv, w, r)
 		if !allowJwt {
 			return
 		}
@@ -22,7 +22,8 @@ func UserHandler(sharedEnv *env.SharedEnv) (f func(w http.ResponseWriter, r *htt
 		head, r.URL.Path = utils.ShiftPath(r.URL.Path)
 		head, r.URL.Path = utils.ShiftPath(r.URL.Path)
 		head, r.URL.Path = utils.ShiftPath(r.URL.Path)
-
+		fmt.Println(u.WalletAddress)
+		//var userDecode =
 		switch r.Method {
 			case http.MethodGet:
 				if head == "" {
@@ -35,6 +36,8 @@ func UserHandler(sharedEnv *env.SharedEnv) (f func(w http.ResponseWriter, r *htt
 					signUp(*sharedEnv, w, r)
 				} else if head == "auth" {
 					auth(*sharedEnv, w, r)
+				} else if head == "mockAuth" {
+					mockAuth(*sharedEnv, w, r)
 				} else {
 					write.Error(errors.RouteNotFound, w, r)
 				}
@@ -98,3 +101,18 @@ func auth(sharedEnv env.SharedEnv, w http.ResponseWriter, r *http.Request) {
 	write.JSON(dbUser, w, r)
 }
 
+type mockAuthReq struct {
+	WalletAddress string `json:"wallet_address"`
+}
+
+func mockAuth(sharedEnv env.SharedEnv, w http.ResponseWriter, r *http.Request) {
+	decoder := json.NewDecoder(r.Body)
+	var req mockAuthReq
+	err := decoder.Decode(&req)
+	if err != nil || &req == nil {
+		write.Error(errors.NoJSONBody, w, r)
+	}
+
+	dbUser, _ := sharedEnv.UserRepo().GetUser(req.WalletAddress)
+	jwt.WriteUserCookie(w, dbUser)
+}
