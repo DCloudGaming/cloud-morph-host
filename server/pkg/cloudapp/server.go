@@ -4,7 +4,7 @@ package cloudapp
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/DCloudGaming/cloud-morph-host/pkg/write"
+	"github.com/DCloudGaming/cloud-morph-host/pkg/handler"
 	"html/template"
 	"log"
 	"net/http"
@@ -12,9 +12,6 @@ import (
 
 	"github.com/DCloudGaming/cloud-morph-host/pkg/common/config"
 	"github.com/DCloudGaming/cloud-morph-host/pkg/common/cws"
-	"github.com/DCloudGaming/cloud-morph-host/pkg/handler"
-	"github.com/DCloudGaming/cloud-morph-host/pkg/utils"
-	"github.com/DCloudGaming/cloud-morph-host/pkg/errors"
 	"github.com/DCloudGaming/cloud-morph-host/pkg/env"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
@@ -47,20 +44,24 @@ func NewServer(cfg config.Config) *Server {
 	return NewServerWithHTTPServerMux(cfg, r, svmux)
 }
 
-func (s *Server) ApiHandler(w http.ResponseWriter, r *http.Request) {
-	var head string
-	head, r.URL.Path = utils.ShiftPath(r.URL.Path)
-	if head != "api" {
-		write.Error(errors.RouteNotFound, w, r)
-	}
+//func (s *Server) ApiHandler(w http.ResponseWriter, r *http.Request) {
+//	var head string
+//	head, r.URL.Path = utils.ShiftPath(r.URL.Path)
+//	if head != "api" {
+//		write.Error(errors.RouteNotFound, w, r)
+//	}
+//
+//	head, r.URL.Path = utils.ShiftPath(r.URL.Path)
+//	switch head {
+//	case "users":
+//		handler.UserHandler(s.shared_env, w, r)
+//	default:
+//		write.Error(errors.RouteNotFound, w, r)
+//	}
+//}
 
-	head, r.URL.Path = utils.ShiftPath(r.URL.Path)
-	switch head {
-	case "users":
-		handler.UserHandler(s.shared_env, w, r)
-	default:
-		write.Error(errors.RouteNotFound, w, r)
-	}
+func (s *Server) initializeHttpApiRoutes(r *mux.Router) {
+	r.HandleFunc("/api/users", handler.UserHandler(&s.shared_env))
 }
 
 func NewServerWithHTTPServerMux(cfg config.Config, r *mux.Router, svmux *http.ServeMux) *Server {
@@ -100,9 +101,6 @@ func NewServerWithHTTPServerMux(cfg config.Config, r *mux.Router, svmux *http.Se
 	r.HandleFunc("/client", server.Client)
 	r.HandleFunc("/host", server.Host)
 
-	// HTTP
-	r.HandleFunc("/api", server.ApiHandler)
-
 	httpServer := &http.Server{
 		Addr:         addr,
 		ReadTimeout:  5 * time.Second,
@@ -110,8 +108,10 @@ func NewServerWithHTTPServerMux(cfg config.Config, r *mux.Router, svmux *http.Se
 		IdleTimeout:  120 * time.Second,
 		Handler:      svmux,
 	}
+
 	server.capp = NewCloudService(cfg)
 	server.httpServer = httpServer
+	server.initializeHttpApiRoutes(r)
 
 	var shared_env env.SharedEnv
 	shared_env, _ = env.New()

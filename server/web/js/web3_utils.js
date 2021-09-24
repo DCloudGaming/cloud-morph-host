@@ -1,5 +1,5 @@
 // TODO: Move to env file
-const APP_BACKEND_URL = "http://127.0.0.1/api";
+const APP_BACKEND_URL = "http://127.0.0.1:8080/api";
 
 const handleWalletClick = async () => {
     console.log("Get web3 Start1");
@@ -25,8 +25,9 @@ const handleWalletClick = async () => {
 
 const handleClick = (walletAddress) => {
     // --snip--
-    fetch(`${APP_BACKEND_URL}/users`, {
-        body: JSON.stringify({"walletAddress": walletAddress}),
+    fetch(`${APP_BACKEND_URL}/users?` + new URLSearchParams({
+            wallet_address: walletAddress
+        }), {
         headers: {
             'Content-Type': 'application/json'
         },
@@ -45,7 +46,7 @@ const handleClick = (walletAddress) => {
 
 const handleSignup = walletAddress => {
     fetch(`${APP_BACKEND_URL}/users/signup`, {
-        body: JSON.stringify({"walletAddress": walletAddress}),
+        body: JSON.stringify({"wallet_address": walletAddress}),
         headers: {
             'Content-Type': 'application/json'
         },
