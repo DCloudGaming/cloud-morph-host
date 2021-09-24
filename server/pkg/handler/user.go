@@ -4,13 +4,20 @@ import (
 	"encoding/json"
 	"github.com/DCloudGaming/cloud-morph-host/pkg/env"
 	"github.com/DCloudGaming/cloud-morph-host/pkg/errors"
+	"github.com/DCloudGaming/cloud-morph-host/pkg/model"
 	"github.com/DCloudGaming/cloud-morph-host/pkg/utils"
 	"github.com/DCloudGaming/cloud-morph-host/pkg/write"
+	"github.com/DCloudGaming/cloud-morph-host/pkg/jwt"
 	"net/http"
 )
 
 func UserHandler(sharedEnv *env.SharedEnv) (f func(w http.ResponseWriter, r *http.Request)) {
 	return func(w http.ResponseWriter, r *http.Request) {
+
+		var allowJwt = jwt.RequireAuth(model.StatusUnverified, *sharedEnv, w, r)
+		if !allowJwt {
+			return
+		}
 		var head string
 		head, r.URL.Path = utils.ShiftPath(r.URL.Path)
 		head, r.URL.Path = utils.ShiftPath(r.URL.Path)
@@ -18,11 +25,11 @@ func UserHandler(sharedEnv *env.SharedEnv) (f func(w http.ResponseWriter, r *htt
 
 		switch r.Method {
 			case http.MethodGet:
-			if head == "" {
-				getUser(*sharedEnv, w, r)
-			} else {
-				write.Error(errors.RouteNotFound, w, r)
-			}
+				if head == "" {
+					getUser(*sharedEnv, w, r)
+				} else {
+					write.Error(errors.RouteNotFound, w, r)
+				}
 			case http.MethodPost:
 				if head == "signup" {
 					signUp(*sharedEnv, w, r)
@@ -37,6 +44,8 @@ func UserHandler(sharedEnv *env.SharedEnv) (f func(w http.ResponseWriter, r *htt
 	}
 }
 
+
+
 func getUser(sharedEnv env.SharedEnv, w http.ResponseWriter, r *http.Request) {
 	walletAddress := r.URL.Query().Get("wallet_address")
 
@@ -49,7 +58,7 @@ func getUser(sharedEnv env.SharedEnv, w http.ResponseWriter, r *http.Request) {
 }
 
 type signUpReq struct {
-	walletAddress string `json:"wallet_address"`
+	WalletAddress string `json:"wallet_address"`
 }
 
 func signUp(sharedEnv env.SharedEnv, w http.ResponseWriter, r *http.Request) {
@@ -60,7 +69,7 @@ func signUp(sharedEnv env.SharedEnv, w http.ResponseWriter, r *http.Request) {
 		write.Error(errors.NoJSONBody, w, r)
 	}
 
-	dbUser, err := sharedEnv.UserRepo().SignUp(req.walletAddress)
+	dbUser, err := sharedEnv.UserRepo().SignUp(req.WalletAddress)
 	if err != nil {
 		write.Error(err, w, r)
 	}
@@ -69,8 +78,8 @@ func signUp(sharedEnv env.SharedEnv, w http.ResponseWriter, r *http.Request) {
 }
 
 type authReq struct {
-	walletAddress string `json:"wallet_address"`
-	signature string `json:"signature"`
+	WalletAddress string `json:"wallet_address"`
+	Signature string `json:"signature"`
 }
 
 func auth(sharedEnv env.SharedEnv, w http.ResponseWriter, r *http.Request) {
@@ -81,7 +90,7 @@ func auth(sharedEnv env.SharedEnv, w http.ResponseWriter, r *http.Request) {
 		write.Error(errors.NoJSONBody, w, r)
 	}
 
-	dbUser, err := sharedEnv.UserRepo().Auth(req.walletAddress, req.signature)
+	dbUser, err := sharedEnv.UserRepo().Auth(req.WalletAddress, req.Signature)
 	if err != nil  {
 		write.Error(err, w, r)
 	}
