@@ -27,7 +27,7 @@ type InputEvent struct {
 type CloudAppClient interface {
 	VideoStream() chan *rtp.Packet
 	// AudioStream() chan *rtp.Packet
-	// SendInput(Packet) TODO: Implement Input
+	SendInput(Packet)
 	Handle()
 	// TODO: this ssrc don't need to be exposed as interface
 	GetSSRC() uint32
@@ -40,7 +40,7 @@ type ccImpl struct {
 	videoStream   chan *rtp.Packet
 	audioStream   chan *rtp.Packet
 	inputEvents   chan Packet
-	// sonnection with syncinput script
+	// connection with syncinput script
 	syncInputConn *net.TCPConn
 	// gameConn      *net.TCPConn // talk with game
 	screenWidth  float32
@@ -73,7 +73,7 @@ func NewCloudAppClient(cfg config.Config, inputEvents chan Packet, appPath strin
 		videoStream: make(chan *rtp.Packet, 1),
 		audioStream: make(chan *rtp.Packet, 1),
 		cfg:         cfg,
-		//inputEvents: inputEvents,
+		inputEvents: inputEvents,
 	}
 
 	if appPath != "" {
@@ -214,9 +214,9 @@ func (c *ccImpl) healthCheckVM() {
 }
 
 func (c *ccImpl) Handle() {
-	// for event := range c.inputEvents {
-	// c.SendInput(event)
-	// }
+	for event := range c.inputEvents {
+		c.SendInput(event)
+	}
 }
 
 // newLocalStreamListener returns RTP listener: listener and (Synchronization source) SSRC of that listener

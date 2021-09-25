@@ -20,5 +20,6 @@ echo "Done"
 sleep 2
 echo "Run Syncinput"
 x86_64-w64-mingw32-g++ .\syncinput.cpp -o .\syncinput.exe -lws2_32 -lpthread -static
-Start-Process winvm/syncinput.exe -PassThru -ArgumentList "$title", ".", "windows"
+# Start-Process .\syncinput.exe -PassThru -ArgumentList "$title", ".", "windows"
+Start-Process .\syncinput.exe -PassThru -ArgumentList "Minesweeper", ".", "windows"
 # Split-Path $outputPath -leaf
