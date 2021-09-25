@@ -2,7 +2,6 @@ package model
 
 import (
 	"gorm.io/gorm"
-	"github.com/DCloudGaming/cloud-morph-host/pkg/schema"
 )
 
 type RegisteredApp struct {
@@ -14,9 +13,9 @@ type RegisteredApp struct {
 }
 
 type AppRepo interface {
-	RegisterBatch(req schema.RegisterAppReq) (interface{}, error)
+	RegisterBatch(req RegisterAppReq) (int64, error)
 	GetFromHost(walletAddress string) ([]RegisteredApp, error)
-	StartSession(req schema.StartSessionReq) (interface{}, error)
+	GetAllRegisteredApps() ([]RegisteredApp, error)
 }
 
 type appRepo struct {
@@ -30,18 +29,14 @@ func NewAppRepo(db *gorm.DB) AppRepo {
 }
 
 // TODO: Only register the unregistered apps, and ignore the rest. For now it might fail
-func (r *appRepo) RegisterBatch(req schema.RegisterAppReq) (interface{}, error) {
+func (r *appRepo) RegisterBatch(req RegisterAppReq) (int64, error) {
 	var apps = []RegisteredApp{}
 	for i := 0; i < len(req.AppPaths); i++ {
 		apps = append(apps, RegisteredApp{WalletAddress: req.WalletAddress, AppPath: req.AppPaths[i], AppName: req.AppNames[i]})
 	}
 	dbRes := r.db.Create(&apps)
 
-	type Res struct {
-		RowsAffected int64 `json:"rows_affected"`
-	}
-
-	return Res{RowsAffected: dbRes.RowsAffected}, dbRes.Error
+	return dbRes.RowsAffected, dbRes.Error
 }
 
 func (r *appRepo) GetFromHost(walletAddress string) ([]RegisteredApp, error) {
@@ -50,6 +45,8 @@ func (r *appRepo) GetFromHost(walletAddress string) ([]RegisteredApp, error) {
 	return apps, dbRes.Error
 }
 
-func (r *appRepo) StartSession(req schema.StartSessionReq) (interface{}, error) {
-
+func (r *appRepo) GetAllRegisteredApps() ([]RegisteredApp, error) {
+	var apps []RegisteredApp
+	dbRes := r.db.Find(&apps)
+	return apps, dbRes.Error
 }

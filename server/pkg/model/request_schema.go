@@ -1,4 +1,4 @@
-package schema
+package model
 
 type SignUpReq struct {
 	WalletAddress string `json:"wallet_address"`
@@ -20,7 +20,7 @@ type RegisterAppReq struct {
 }
 
 type StartSessionReq struct {
-	MaxDuration int `json:"max_duration"`
+	MaxDuration int64 `json:"max_duration"`
 	ClientWalletAddress string `json:"client_wallet_address"`
 	HostWalletAddress string `json:"host_wallet_address"`
 	AppName string `json:"app_name"`
@@ -28,7 +28,7 @@ type StartSessionReq struct {
 
 type UpdateSessionReq struct {
 	SessionID int `json:"session_id"`
-	TotalDuration int `json:"total_duration"`
-	AccumCharge int `json:"accum_charge"`
+	TotalDuration int64 `json:"total_duration"`
+	AccumCharge int64 `json:"accum_charge"`
 	StreamStatus int `json:"stream_status"`
 }

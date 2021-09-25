@@ -37,6 +37,7 @@ CREATE TABLE IF NOT EXISTS registered_apps (
     PRIMARY KEY (wallet_address, app_name)
 );
 
+-- TODO: Change id to uuid
 CREATE TABLE IF NOT EXISTS stream_sessions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     stream_status INTEGER,

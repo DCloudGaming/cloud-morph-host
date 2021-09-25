@@ -43,10 +43,9 @@ func NewUserRepo(db *gorm.DB) UserRepo {
 func (r *userRepo) SignUp(walletAddress string) (*User, error) {
 	var nonce string
 	nonce = utils.GenerateRandomString(10)
-	r.db.Create(&User{WalletAddress: walletAddress, Nonce: nonce, Status: StatusUnverified})
+	user := User{WalletAddress: walletAddress, Nonce: nonce, Status: StatusUnverified}
+	r.db.Create(&user)
 
-	var user User
-	r.db.Order("updated_at").First(&user, "wallet_address = ?", walletAddress)
 	return &user, nil
 }
 
