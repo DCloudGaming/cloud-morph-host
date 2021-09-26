@@ -12,8 +12,14 @@ registerButton.addEventListener('click', function () {
     ipcRenderer.send("register", arg);
 });
 
+const connectWalletButton = document.getElementById('connectWalletButton');
+connectWalletButton.addEventListener('click', function() {
+   var arg = "secondparam";
+   
+   ipcRenderer.send("connectWallet", arg);
+});
+
 //ipcRenderer.on will receive the “btnclick-task-finished'” info from main process 
 ipcRenderer.on('registerFinished', function (event, param) {
     console.log(param);
-    apppathText.value = param;
 });

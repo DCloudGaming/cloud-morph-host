@@ -4,6 +4,7 @@ package cloudapp
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/DCloudGaming/cloud-morph-host/pkg/handler"
 	"html/template"
 	"log"
 	"net/http"
@@ -11,6 +12,7 @@ import (
 
 	"github.com/DCloudGaming/cloud-morph-host/pkg/common/config"
 	"github.com/DCloudGaming/cloud-morph-host/pkg/common/cws"
+	"github.com/DCloudGaming/cloud-morph-host/pkg/env"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 )
@@ -29,6 +31,7 @@ type Server struct {
 	httpServer *http.Server
 	wsClients  map[string]*cws.Client
 	capp       *Service
+	shared_env         env.SharedEnv
 }
 
 func NewServer(cfg config.Config) *Server {
@@ -39,6 +42,11 @@ func NewServer(cfg config.Config) *Server {
 	svmux.Handle("/", r)
 
 	return NewServerWithHTTPServerMux(cfg, r, svmux)
+}
+
+func (s *Server) initializeHttpApiRoutes(r *mux.Router) {
+	r.PathPrefix("/api/users").Handler(http.HandlerFunc(handler.ApiHandlerWrapper(&s.shared_env, handler.UserHandler)))
+	r.PathPrefix("/api/apps").Handler(http.HandlerFunc(handler.ApiHandlerWrapper(&s.shared_env, handler.AppHandler)))
 }
 
 func NewServerWithHTTPServerMux(cfg config.Config, r *mux.Router, svmux *http.ServeMux) *Server {
@@ -77,6 +85,7 @@ func NewServerWithHTTPServerMux(cfg config.Config, r *mux.Router, svmux *http.Se
 	// Websocket
 	r.HandleFunc("/client", server.Client)
 	r.HandleFunc("/host", server.Host)
+
 	httpServer := &http.Server{
 		Addr:         addr,
 		ReadTimeout:  5 * time.Second,
@@ -84,8 +93,14 @@ func NewServerWithHTTPServerMux(cfg config.Config, r *mux.Router, svmux *http.Se
 		IdleTimeout:  120 * time.Second,
 		Handler:      svmux,
 	}
+
 	server.capp = NewCloudService(cfg)
 	server.httpServer = httpServer
+	server.initializeHttpApiRoutes(r)
+
+	var shared_env env.SharedEnv
+	shared_env, _ = env.New()
+	server.shared_env = shared_env
 
 	return server
 }
@@ -196,6 +211,7 @@ func (s *Server) Client(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) initClientData(client *cws.Client) {
+
 	data := initData{
 		CurAppID: s.appID,
 	}

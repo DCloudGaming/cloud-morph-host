@@ -32,10 +32,12 @@ type Client struct {
 	cancel chan struct{}
 	// done to notify if the client is done clean up
 	done chan struct{}
+	walletAddress string
 }
 
 type Host struct {
 	hostID string
+	walletAddress string
 	ws     *cws.Client
 	apps   []appPacket
 	// cancel to trigger cleaning up when client is disconnected
@@ -63,6 +65,7 @@ func (s *Service) AddClient(clientID string, ws *cws.Client) *Client {
 
 func (s *Service) RemoveClient(clientID string) {
 	client := s.clients[clientID]
+	delete(s.clients, clientID)
 	close(client.cancel)
 }
 
@@ -83,6 +86,7 @@ func (s *Service) AddHost(hostID string, ws *cws.Client) *Host {
 
 func (s *Service) RemoveHost(hostID string) {
 	host := s.hosts[hostID]
+	delete(s.hosts, hostID)
 	close(host.cancel)
 }
 
