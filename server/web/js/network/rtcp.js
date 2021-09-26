@@ -23,7 +23,7 @@ const rtcp = (() => {
     mediaStream = new MediaStream();
 
     // input channel, ordered + reliable, id 0
-    // inputChannel = connection.createDataChannel('a', {ordered: true, negotiated: true, id: 0,});
+    // inputChannel = connection.createDataChannel('a', { ordered: true, negotiated: true, id: 0, });
     // recv dataChannel from worker
     connection.ondatachannel = (e) => {
       log.debug(`[rtcp] ondatachannel: ${e.channel.label}`);
@@ -46,7 +46,7 @@ const rtcp = (() => {
 
     socket.send({
       type: "initwebrtc",
-      data: JSON.stringify({ is_mobile: env.isMobileDevice()}),
+      data: JSON.stringify({ is_mobile: env.isMobileDevice() }),
     });
   };
 
@@ -159,6 +159,7 @@ const rtcp = (() => {
       });
       isFlushing = false;
     },
+    input: (data) => inputChannel.send(data),
     isConnected: () => connected,
     isInputReady: () => inputReady,
     getConnection: () => connection,
@@ -175,8 +176,8 @@ const rtcp = (() => {
       // Fake data for displaying
       for (let i = 0; i < 14; i++) {
         parse_hosts.push({
-            host_id: 1,
-            app_paths: ["Garena"]
+          host_id: 1,
+          app_paths: ["Garena"]
         })
       }
       console.log(parse_hosts)
@@ -190,7 +191,7 @@ const rtcp = (() => {
         for (let j = 0; j < chosen_host["app_paths"].length; j++) {
           var app = chosen_host["app_paths"][j];
           var tr = document.createElement('tr');
-          tr.innerHTML = '<td class="text-center">' + (i+1) + '</td>' + '<td>' + app + '</td>' + '<td>' + 'GeForce RTX 2080 SUPER' + '</td>' + '<td>' + '4.8/5.0' + '</td>'
+          tr.innerHTML = '<td class="text-center">' + (i + 1) + '</td>' + '<td>' + app + '</td>' + '<td>' + 'GeForce RTX 2080 SUPER' + '</td>' + '<td>' + '4.8/5.0' + '</td>'
           tr.onclick = createClickHandler(host_id, app);
           tab.appendChild(tr);
         }
@@ -207,11 +208,11 @@ const rtcp = (() => {
   };
 })(event, socket, env, log);
 
-var createClickHandler = function(host_id, app) {
-  return function() {
+var createClickHandler = function (host_id, app) {
+  return function () {
     socket.send({
       type: "registerBrowserHost",
-      data: JSON.stringify({host_id, app})
+      data: JSON.stringify({ host_id, app })
     });
   }
 };

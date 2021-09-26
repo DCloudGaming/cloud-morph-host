@@ -4,12 +4,15 @@ package cloudapp
 import (
 	"bufio"
 	"container/ring"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strconv"
+	"time"
 
 	"github.com/DCloudGaming/cloud-morph-host/pkg/common/config"
 	"github.com/DCloudGaming/cloud-morph-host/pkg/common/cws"
@@ -24,7 +27,7 @@ type InputEvent struct {
 type CloudAppClient interface {
 	VideoStream() chan *rtp.Packet
 	// AudioStream() chan *rtp.Packet
-	// SendInput(Packet) TODO: Implement Input
+	SendInput(Packet)
 	Handle()
 	// TODO: this ssrc don't need to be exposed as interface
 	GetSSRC() uint32
@@ -37,6 +40,8 @@ type ccImpl struct {
 	videoStream   chan *rtp.Packet
 	audioStream   chan *rtp.Packet
 	inputEvents   chan Packet
+	// connection with syncinput script
+	syncInputConn *net.TCPConn
 	// gameConn      *net.TCPConn // talk with game
 	screenWidth  float32
 	screenHeight float32
@@ -68,7 +73,7 @@ func NewCloudAppClient(cfg config.Config, inputEvents chan Packet, appPath strin
 		videoStream: make(chan *rtp.Packet, 1),
 		audioStream: make(chan *rtp.Packet, 1),
 		cfg:         cfg,
-		//inputEvents: inputEvents,
+		inputEvents: inputEvents,
 	}
 
 	if appPath != "" {
@@ -79,15 +84,15 @@ func NewCloudAppClient(cfg config.Config, inputEvents chan Packet, appPath strin
 
 func NewCloudAppClientStart(c *ccImpl, appPath string) {
 	// To use for communicate with syncinput
-	// la, err := net.ResolveTCPAddr("tcp4", ":9090")
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// log.Println("listening input at port 9090")
-	// ln, err := net.ListenTCP("tcp", la)
-	// if err != nil {
-	// 	panic(err)
-	// }
+	la, err := net.ResolveTCPAddr("tcp4", ":9090")
+	if err != nil {
+		panic(err)
+	}
+	log.Println("listening input at port 9090")
+	ln, err := net.ListenTCP("tcp", la)
+	if err != nil {
+		panic(err)
+	}
 
 	log.Println("Launching application")
 	c.launchApp(curVideoRTPPort, curAudioRTPPort, c.cfg, appPath)
@@ -108,6 +113,27 @@ func NewCloudAppClientStart(c *ccImpl, appPath string) {
 	log.Println("Launched Video stream listener")
 	// c.listenAudioStream()
 	// log.Println("Launched Audio stream listener")
+
+	// Maintain input stream from server to Virtual Machine over websocket
+	go c.healthCheckVM()
+	// NOTE: Why Websocket: because normal IPC cannot communicate cross OS.
+	go func() {
+		for {
+			log.Println("Waiting syncinput to connect")
+			// Polling Wine socket connection (input stream)
+			conn, err := ln.AcceptTCP()
+			log.Println("Accepted a TCP connection")
+			if err != nil {
+				log.Println("err: ", err)
+			}
+			conn.SetKeepAlive(true)
+			conn.SetKeepAlivePeriod(10 * time.Second)
+			c.syncInputConn = conn
+			c.isReady = true
+			log.Println("Launched IPC with VM")
+		}
+	}()
+
 }
 
 // convertWSPacket returns cloudapp packet from ws packet
@@ -123,14 +149,13 @@ func (c *ccImpl) GetSSRC() uint32 {
 }
 
 func runApp(params []string, appPath string) {
-	log.Println("params: ", params)
 
 	// Launch application using exec
 	var cmd *exec.Cmd
-	params = append([]string{"/C", "run-app.bat", appPath, "Untitled - Notepad"}, params...)
+	params = append([]string{"-ExecutionPolicy", "Bypass", "-F", "run-app.ps1", appPath}, params...)
 	//params = append([]string{"/C", "run-app.bat"}, params...)
 
-	cmd = exec.Command("cmd", params...)
+	cmd = exec.Command("powershell", params...)
 
 	cmd.Env = os.Environ()
 	stdout, err := cmd.StdoutPipe()
@@ -153,7 +178,9 @@ func runApp(params []string, appPath string) {
 
 // done to forcefully stop all processes
 func (c *ccImpl) launchApp(curVideoRTPPort int, curAudioRTPPort int, cfg config.Config, appPath string) chan struct{} {
-	params := []string{cfg.Path, cfg.AppFile, cfg.WindowTitle}
+	_, filename := filepath.Split(appPath)
+	fmt.Println("Running ", appPath, " ", filename)
+	params := []string{appPath, filename}
 	if cfg.HWKey {
 		params = append(params, "game")
 	} else {
@@ -161,6 +188,7 @@ func (c *ccImpl) launchApp(curVideoRTPPort int, curAudioRTPPort int, cfg config.
 	}
 	params = append(params, []string{strconv.Itoa(cfg.ScreenWidth), strconv.Itoa(cfg.ScreenHeight), appPath}...)
 
+	log.Println("params: ", params)
 	runApp(params, appPath)
 	// update flag
 	c.screenWidth = float32(cfg.ScreenWidth)
@@ -171,10 +199,24 @@ func (c *ccImpl) launchApp(curVideoRTPPort int, curAudioRTPPort int, cfg config.
 	return done
 }
 
+// healthCheckVM to maintain connection with Virtual Machine
+func (c *ccImpl) healthCheckVM() {
+	log.Println("Starting health check")
+	for {
+		if c.syncInputConn != nil {
+			_, err := c.syncInputConn.Write([]byte{0})
+			if err != nil {
+				log.Println(err)
+			}
+		}
+		time.Sleep(2 * time.Second)
+	}
+}
+
 func (c *ccImpl) Handle() {
-	// for event := range c.inputEvents {
-	// c.SendInput(event)
-	// }
+	for event := range c.inputEvents {
+		c.SendInput(event)
+	}
 }
 
 // newLocalStreamListener returns RTP listener: listener and (Synchronization source) SSRC of that listener
@@ -262,7 +304,7 @@ func (c *ccImpl) listenVideoStream() {
 	// Broadcast video stream
 	go func() {
 		defer func() {
-			c.videoListener.Close()
+			// c.videoListener.Close()
 			log.Println("Closing app VM")
 		}()
 		r := ring.New(120)
@@ -277,6 +319,9 @@ func (c *ccImpl) listenVideoStream() {
 		for {
 			inboundRTPPacket := r.Value.([]byte) // UDP MTU
 			r = r.Next()
+			if c.videoListener == nil {
+				continue
+			}
 			n, _, err := c.videoListener.ReadFrom(inboundRTPPacket)
 			if err != nil {
 				log.Printf("error during read: %s", err)
@@ -296,61 +341,61 @@ func (c *ccImpl) listenVideoStream() {
 
 }
 
-// func (c *ccImpl) SendInput(packet Packet) {
-// 	switch packet.Type {
-// 	case eventKeyUp:
-// 		c.simulateKey(packet.Data, 0)
-// 	case eventKeyDown:
-// 		c.simulateKey(packet.Data, 1)
-// 	case eventMouseMove:
-// 		c.simulateMouseEvent(packet.Data, 0)
-// 	case eventMouseDown:
-// 		c.simulateMouseEvent(packet.Data, 1)
-// 	case eventMouseUp:
-// 		c.simulateMouseEvent(packet.Data, 2)
-// 	}
-// }
+func (c *ccImpl) SendInput(packet Packet) {
+	switch packet.Type {
+	case eventKeyUp:
+		c.simulateKey(packet.Data, 0)
+	case eventKeyDown:
+		c.simulateKey(packet.Data, 1)
+	case eventMouseMove:
+		c.simulateMouseEvent(packet.Data, 0)
+	case eventMouseDown:
+		c.simulateMouseEvent(packet.Data, 1)
+	case eventMouseUp:
+		c.simulateMouseEvent(packet.Data, 2)
+	}
+}
 
-// func (c *ccImpl) simulateKey(jsonPayload string, keyState byte) {
-// 	if !c.isReady {
-// 		return
-// 	}
+func (c *ccImpl) simulateKey(jsonPayload string, keyState byte) {
+	if !c.isReady {
+		return
+	}
 
-// 	log.Println("KeyDown event", jsonPayload)
-// 	type keydownPayload struct {
-// 		KeyCode int `json:keycode`
-// 	}
-// 	p := &keydownPayload{}
-// 	json.Unmarshal([]byte(jsonPayload), &p)
+	log.Println("KeyDown event", jsonPayload)
+	type keydownPayload struct {
+		KeyCode int `json:keycode`
+	}
+	p := &keydownPayload{}
+	json.Unmarshal([]byte(jsonPayload), &p)
 
-// 	vmKeyMsg := fmt.Sprintf("K%d,%b|", p.KeyCode, keyState)
-// 	b, err := c.wineConn.Write([]byte(vmKeyMsg))
-// 	log.Printf("%+v\n", c.wineConn)
-// 	log.Println("Sended key: ", b, err)
-// }
+	vmKeyMsg := fmt.Sprintf("K%d,%b|", p.KeyCode, keyState)
+	b, err := c.syncInputConn.Write([]byte(vmKeyMsg))
+	log.Printf("%+v\n", c.syncInputConn)
+	log.Println("Sended key: ", b, err)
+}
 
-// // simulateMouseEvent handles mouse down event and send it to Virtual Machine over TCP port
-// func (c *ccImpl) simulateMouseEvent(jsonPayload string, mouseState int) {
-// 	if !c.isReady {
-// 		return
-// 	}
+// simulateMouseEvent handles mouse down event and send it to Virtual Machine over TCP port
+func (c *ccImpl) simulateMouseEvent(jsonPayload string, mouseState int) {
+	if !c.isReady {
+		return
+	}
 
-// 	type mousePayload struct {
-// 		IsLeft byte    `json:isLeft`
-// 		X      float32 `json:x`
-// 		Y      float32 `json:y`
-// 		Width  float32 `json:width`
-// 		Height float32 `json:height`
-// 	}
-// 	p := &mousePayload{}
-// 	json.Unmarshal([]byte(jsonPayload), &p)
-// 	p.X = p.X * c.screenWidth / p.Width
-// 	p.Y = p.Y * c.screenHeight / p.Height
+	type mousePayload struct {
+		IsLeft byte    `json:isLeft`
+		X      float32 `json:x`
+		Y      float32 `json:y`
+		Width  float32 `json:width`
+		Height float32 `json:height`
+	}
+	p := &mousePayload{}
+	json.Unmarshal([]byte(jsonPayload), &p)
+	p.X = p.X * c.screenWidth / p.Width
+	p.Y = p.Y * c.screenHeight / p.Height
 
-// 	// Mouse is in format of comma separated "12.4,52.3"
-// 	vmMouseMsg := fmt.Sprintf("M%d,%d,%f,%f,%f,%f|", p.IsLeft, mouseState, p.X, p.Y, p.Width, p.Height)
-// 	_, err := c.wineConn.Write([]byte(vmMouseMsg))
-// 	if err != nil {
-// 		fmt.Println("Err: ", err)
-// 	}
-// }
+	// Mouse is in format of comma separated "12.4,52.3"
+	vmMouseMsg := fmt.Sprintf("M%d,%d,%f,%f,%f,%f|", p.IsLeft, mouseState, p.X, p.Y, p.Width, p.Height)
+	_, err := c.syncInputConn.Write([]byte(vmMouseMsg))
+	if err != nil {
+		fmt.Println("Err: ", err)
+	}
+}
