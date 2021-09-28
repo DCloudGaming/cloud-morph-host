@@ -29,10 +29,10 @@ body {
   bottom: 3%;
   left: 50%;
   background: #fef1e6;
-  width: 100vw;
-  height: 100vw;
-  margin-left: -50%;
-  margin-bottom: -45%;
+  width: 150vw;
+  height: 150vw;
+  margin-left: -75%;
+  margin-bottom: -100%;
   transform-origin: 50% 48%;
   border-radius: 48%;
   animation: drift 5000ms infinite linear;
@@ -42,10 +42,10 @@ body {
 .wave.-two {
   animation: drift 5000ms infinite linear;
   background: #f9d5a7;
-  width: 85vw;
-  height: 85vw;
-  margin-left: -42%;
-  margin-bottom: -45%;
+  width: 110vw;
+  height: 110vw;
+  margin-left: -55%;
+  margin-bottom: -75%;
 }
 
 .wave.-three {
