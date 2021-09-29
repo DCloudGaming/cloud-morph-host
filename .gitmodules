@@ -1,0 +1,3 @@
+[submodule "dcloud-webapp"]
+	path = dcloud-webapp
+	url = https://github.com/DCloudGaming/dcloud-webapp
