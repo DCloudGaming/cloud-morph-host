@@ -135,11 +135,11 @@ button#addAppButton {
 
 .modal-content {
   background-color: #fefefe;
-  margin: 30% auto;
+  margin: 10% auto;
   padding: 3rem;
   border: 1px solid #888;
-  width: 30%;
-  height: 10%;
+  width: 50%;
+  height: 20%;
   border-radius: 3rem;
 }
 
@@ -160,7 +160,6 @@ button#addAppButton {
 
 input[type="text"] {
   border: none;
-  min-width: 80%;
   border-radius: 5rem;
   background-color: #f0f2fc;
   padding: 0.5rem 1rem;
@@ -184,6 +183,30 @@ input[type="text"] {
 
 .space-between {
   justify-content: space-between;
+}
+
+.center {
+  align-items: center;
+}
+
+.mb-5 {
+  margin-bottom: 5rem;
+}
+
+.mt-3 {
+  margin-top: 3rem;
+}
+
+.mt-5 {
+  margin-top: 5rem;
+}
+
+.mb-2 {
+  margin-bottom: 2rem;
+}
+
+.mt-2 {
+  margin-top: 2rem;
 }
 
 .rounded-top {

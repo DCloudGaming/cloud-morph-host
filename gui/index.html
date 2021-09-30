@@ -16,18 +16,23 @@
     <div id="addAppModal" class="modal">
       <div class="modal-content">
         <span id="addAppClose" class="close">&times;</span>
-        <div>
-          <input type="checkbox" checked="checked" name="radio" /> Notepad
-          <br /><br />
+        <div class="row space-between center mb-2 mt-3">
+          <input type="checkbox" checked="checked" name="radio" />
+          <select name="app" id="app">
+            <option value="notepad">Notepad</option>
+          </select>
           <input
             type="text"
             id="apppathText"
             name="apppath"
             placeholder="Path"
           />
+          <button class="button" id="registerButton">Register</button>
+        </div>
+        <div class="row flex-end">
+          <button class="button-highlight" id="saveButton">Save</button>
         </div>
         <br />
-        <button class="button-highlight" id="registerButton">Add app</button>
       </div>
     </div>
     <div id="connectWalletModal" class="modal">
