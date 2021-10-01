@@ -11,6 +11,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"time"
 
@@ -33,6 +34,14 @@ type CloudAppClient interface {
 	GetSSRC() uint32
 }
 
+type osTypeEnum int
+
+const (
+	Linux osTypeEnum = iota
+	Mac
+	Windows
+)
+
 type ccImpl struct {
 	isReady       bool
 	videoListener *net.UDPConn
@@ -42,6 +51,7 @@ type ccImpl struct {
 	inputEvents   chan Packet
 	// connection with syncinput script
 	syncInputConn *net.TCPConn
+	osType        osTypeEnum
 	// gameConn      *net.TCPConn // talk with game
 	screenWidth  float32
 	screenHeight float32
@@ -76,6 +86,14 @@ func NewCloudAppClient(cfg config.Config, inputEvents chan Packet, appPath strin
 		inputEvents: inputEvents,
 	}
 
+	switch runtime.GOOS {
+	case "windows":
+		c.osType = Windows
+	default:
+		c.osType = Linux
+	}
+
+	// NewCloudAppClientStart(c, "/home/giongto/Desktop/code/cloud-morph-host/streamer/apps/Minesweeper.exe")
 	if appPath != "" {
 		NewCloudAppClientStart(c, appPath)
 	}
@@ -103,6 +121,13 @@ func NewCloudAppClientStart(c *ccImpl, appPath string) {
 	videoListener, listenerssrc := c.newLocalStreamListener(curVideoRTPPort)
 	c.videoListener = videoListener
 	c.ssrc = listenerssrc
+	if c.osType != Windows {
+		// Don't spawn Audio in Windows
+		log.Println("Setup Audio Listener")
+		audioListener, audiolistenerssrc := c.newLocalStreamListener(curAudioRTPPort)
+		c.audioListener = audioListener
+		c.ssrc = audiolistenerssrc
+	}
 	log.Println("Setup Audio Listener")
 	// TODO: Read video stream from encoded video stream produced by FFMPEG
 	// audioListener, audiolistenerssrc := c.newLocalStreamListener(curAudioRTPPort)
@@ -111,6 +136,11 @@ func NewCloudAppClientStart(c *ccImpl, appPath string) {
 
 	c.listenVideoStream()
 	log.Println("Launched Video stream listener")
+	if c.osType != Windows {
+		// Don't spawn Audio in Windows
+		c.listenAudioStream()
+		log.Println("Launched Audio stream listener")
+	}
 	// c.listenAudioStream()
 	// log.Println("Launched Audio stream listener")
 
@@ -148,14 +178,19 @@ func (c *ccImpl) GetSSRC() uint32 {
 	return c.ssrc
 }
 
-func runApp(params []string, appPath string) {
+func (c *ccImpl) runApp(params []string) {
 
 	// Launch application using exec
 	var cmd *exec.Cmd
-	params = append([]string{"-ExecutionPolicy", "Bypass", "-F", "run-app.ps1", appPath}, params...)
 	//params = append([]string{"/C", "run-app.bat"}, params...)
-
-	cmd = exec.Command("powershell", params...)
+	if c.osType == Windows {
+		params = append([]string{"-ExecutionPolicy", "Bypass", "-F", "run-app.ps1"}, params...)
+		log.Println("You are running on Windows", params)
+		cmd = exec.Command("powershell", params...)
+	} else {
+		log.Println("You are running on Linux")
+		cmd = exec.Command("./run-wine.sh", params...)
+	}
 
 	cmd.Env = os.Environ()
 	stdout, err := cmd.StdoutPipe()
@@ -180,7 +215,15 @@ func runApp(params []string, appPath string) {
 func (c *ccImpl) launchApp(curVideoRTPPort int, curAudioRTPPort int, cfg config.Config, appPath string) chan struct{} {
 	_, filename := filepath.Split(appPath)
 	fmt.Println("Running ", appPath, " ", filename)
-	params := []string{appPath, filename}
+	params := []string{}
+	if c.osType == Windows {
+		params = append(params, []string{appPath, filename}...)
+	} else {
+		mountedDirName := "/winevm/apps"
+		appTitle := "Minesweeper"
+		params = append(params, []string{mountedDirName, filename, appTitle}...)
+	}
+
 	if cfg.HWKey {
 		params = append(params, "game")
 	} else {
@@ -189,7 +232,7 @@ func (c *ccImpl) launchApp(curVideoRTPPort int, curAudioRTPPort int, cfg config.
 	params = append(params, []string{strconv.Itoa(cfg.ScreenWidth), strconv.Itoa(cfg.ScreenHeight), appPath}...)
 
 	log.Println("params: ", params)
-	runApp(params, appPath)
+	c.runApp(params)
 	// update flag
 	c.screenWidth = float32(cfg.ScreenWidth)
 	c.screenHeight = float32(cfg.ScreenHeight)
@@ -222,7 +265,7 @@ func (c *ccImpl) Handle() {
 // newLocalStreamListener returns RTP listener: listener and (Synchronization source) SSRC of that listener
 func (c *ccImpl) newLocalStreamListener(rtpPort int) (*net.UDPConn, uint32) {
 	fmt.Println("new Local Stream")
-	// Open a UDP Listener for RTP Packets on port 5004
+	// Open a UDP Listener for RTP Packets on port 5006
 	listener, err := net.ListenUDP("udp", &net.UDPAddr{IP: net.ParseIP("localhost"), Port: rtpPort})
 	if err != nil {
 		fmt.Errorf("%v", err)
