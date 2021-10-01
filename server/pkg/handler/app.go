@@ -55,7 +55,25 @@ func getHostApps(sharedEnv env.SharedEnv, u model.User, w http.ResponseWriter, r
 
 func getDiscoverApps(sharedEnv env.SharedEnv, u model.User, w http.ResponseWriter, r *http.Request) {
 	dbHostApps, _ := sharedEnv.AppRepo().GetAllRegisteredApps()
-	write.JSON(dbHostApps, w, r)
+	var resp []model.DiscoverAppResponse
+
+	for _, appInstance := range dbHostApps {
+		var resp1 model.DiscoverAppResponse
+		var hostWalletAddress = appInstance.WalletAddress
+		dbUser, _ := sharedEnv.UserRepo().GetUser(hostWalletAddress)
+		resp1.ID = appInstance.ID
+		resp1.HostWalletAddress = hostWalletAddress
+		resp1.AppName = appInstance.AppName
+		resp1.AppPath = appInstance.AppPath
+		resp1.Machine = dbUser.Machine
+		resp1.HourlyRate = 0
+		resp1.MaxDuration = 3600
+		resp1.Rating = 5
+		resp1.Image = "./assets/img/demo.png"
+		resp = append(resp, resp1)
+	}
+
+	write.JSON(resp, w, r)
 }
 
 func registerApp(sharedEnv env.SharedEnv, u model.User, w http.ResponseWriter, r *http.Request) {

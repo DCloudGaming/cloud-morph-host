@@ -2,7 +2,6 @@ drop table users;
 -- drop table host_configs;
 drop table registered_apps;
 drop table stream_sessions;
-drop table payments;
 
 -- Please note INTEGER is LONG too in SQLite
 
