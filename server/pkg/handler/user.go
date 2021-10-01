@@ -19,6 +19,8 @@ func UserHandler(
 		case http.MethodGet:
 			if head == "" {
 				getUser(*sharedEnv, w, r)
+			} else if head == "getFromToken" {
+				getUserFromToken(*sharedEnv, *u, w, r)
 			} else if head == "profile" {
 				getProfile(*sharedEnv, *u, w, r)
 			} else {
@@ -28,11 +30,13 @@ func UserHandler(
 			if head == "signup" {
 				signUp(*sharedEnv, w, r)
 			} else if head == "getOrCreate" {
-				getOrCreate(*sharedEnv, w, r)
+				getOrCreate(*sharedEnv, *u, w, r)
 			} else if head == "auth" {
 				auth(*sharedEnv, w, r)
 			} else if head == "mockAuth" {
 				mockAuth(*sharedEnv, w, r)
+			} else if head == "update" {
+				updateUser(*sharedEnv, *u, w, r)
 			} else {
 				write.Error(errors.RouteNotFound, w, r)
 			}
@@ -49,6 +53,8 @@ func getProfile(sharedEnv env.SharedEnv, u model.User, w http.ResponseWriter, r 
 	registeredApps, _ := sharedEnv.AppRepo().GetFromHost(walletAddress)
 	playSessions, _ := sharedEnv.StreamSessionRepo().GetPlaySessions(walletAddress)
 	hostSessions, _ := sharedEnv.StreamSessionRepo().GetHostSessions(walletAddress)
+	dbUser, _ := sharedEnv.UserRepo().GetUser(walletAddress)
+
 
 	isAllow := perm.RequireOwner(u.WalletAddress, walletAddress) &&
 		perm.RequireAuthenticated(sharedEnv, w, r)
@@ -58,9 +64,19 @@ func getProfile(sharedEnv env.SharedEnv, u model.User, w http.ResponseWriter, r 
 	}
 
 	write.JSON(model.UserDetailProfileResponse{
-		WalletAddress: walletAddress, CurUnreleasedBalance: 0, HourlyRate: 0,
+		WalletAddress: walletAddress, CurUnreleasedBalance: 0, HourlyRate: 0, Location: dbUser.Location, Machine: dbUser.Machine,
 		RegisteredApps: registeredApps, PlaySessions: playSessions, HostSessions: hostSessions,
 	}, w, r)
+}
+
+func getUserFromToken(sharedEnv env.SharedEnv, u model.User, w http.ResponseWriter, r *http.Request) {
+
+	dbUser, err := sharedEnv.UserRepo().GetUser(u.WalletAddress)
+	if err != nil {
+		write.Error(err, w, r)
+	}
+
+	write.JSON(dbUser, w, r)
 }
 
 func getUser(sharedEnv env.SharedEnv, w http.ResponseWriter, r *http.Request) {
@@ -90,12 +106,37 @@ func signUp(sharedEnv env.SharedEnv, w http.ResponseWriter, r *http.Request) {
 	write.JSON(dbUser, w, r)
 }
 
-func getOrCreate(sharedEnv env.SharedEnv, w http.ResponseWriter, r *http.Request) {
+func updateUser(sharedEnv env.SharedEnv, u model.User, w http.ResponseWriter, r *http.Request) {
+	decoder := json.NewDecoder(r.Body)
+	var req model.UpdateUserReq
+	err := decoder.Decode(&req)
+	if err != nil || &req == nil {
+		write.Error(errors.NoJSONBody, w, r)
+		return
+	}
+
+	isAllow := perm.RequireOwner(u.WalletAddress, req.WalletAddress) &&
+		perm.RequireAuthenticated(sharedEnv, w, r)
+	if !isAllow {
+		write.Error(errors.RouteUnauthorized, w, r)
+		return
+	}
+
+	dbUser, _ := sharedEnv.UserRepo().UpdateUser(req)
+	write.JSON(dbUser, w, r)
+}
+
+// Also validate
+func getOrCreate(sharedEnv env.SharedEnv, u model.User, w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	var req model.GetOrCreateUserReq
 	err := decoder.Decode(&req)
 	if err != nil || &req == nil {
 		write.Error(errors.NoJSONBody, w, r)
+		return
+	}
+
+	if (u.WalletAddress != "") {
 		return
 	}
 

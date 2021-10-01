@@ -8,6 +8,13 @@ type GetOrCreateUserReq struct {
 	WalletAddress string `json:"wallet_address"`
 }
 
+type UpdateUserReq struct {
+	WalletAddress string `json:"wallet_address"`
+	Machine string `json:"machine"`
+	Location string `json:"location"`
+	Name string `json:"name"`
+}
+
 type AuthReq struct {
 	WalletAddress string `json:"wallet_address"`
 	Signature string `json:"signature"`
@@ -36,3 +43,4 @@ type UpdateSessionReq struct {
 	AccumCharge int64 `json:"accum_charge"`
 	StreamStatus int `json:"stream_status"`
 }
+

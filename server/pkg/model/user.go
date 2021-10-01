@@ -11,6 +11,9 @@ type User struct {
 	ID string
 	WalletAddress string `gorm:"primaryKey"`
 	Nonce string `json:"nonce"`
+	Machine string `json:"machine"`
+	Location string `json:"location"`
+	Name string `json:"name"`
 	Status  Status
 }
 
@@ -27,6 +30,7 @@ type UserRepo interface {
 	SignUp(walletAddress string) (*User, error)
 	Auth(walletAddress string, signature string) (*User, error)
 	GetUser(walletAddress string) (*User, error)
+	UpdateUser(req UpdateUserReq) (*User, error)
 }
 
 type userRepo struct {
@@ -70,5 +74,15 @@ func (r *userRepo) Auth(walletAddress string, signature string) (*User, error) {
 func (r *userRepo) GetUser(walletAddress string) (*User, error) {
 	var user User
 	r.db.First(&user, "wallet_address = ?", walletAddress)
+	return &user, nil
+}
+
+func (r *userRepo) UpdateUser(req UpdateUserReq) (*User, error) {
+	var user User
+	r.db.First(&user, "wallet_address = ?", req.WalletAddress)
+	user.Machine = req.Machine
+	user.Location = req.Location
+	user.Name = req.Name
+	r.db.Save(&user)
 	return &user, nil
 }
