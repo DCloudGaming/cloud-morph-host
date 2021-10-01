@@ -8,6 +8,7 @@ import (
 	"github.com/DCloudGaming/cloud-morph-host/pkg/model"
 	"github.com/DCloudGaming/cloud-morph-host/pkg/perm"
 	"github.com/DCloudGaming/cloud-morph-host/pkg/write"
+	"gorm.io/gorm"
 	"net/http"
 )
 
@@ -26,6 +27,8 @@ func UserHandler(
 		case http.MethodPost:
 			if head == "signup" {
 				signUp(*sharedEnv, w, r)
+			} else if head == "getOrCreate" {
+				getOrCreate(*sharedEnv, w, r)
 			} else if head == "auth" {
 				auth(*sharedEnv, w, r)
 			} else if head == "mockAuth" {
@@ -87,6 +90,33 @@ func signUp(sharedEnv env.SharedEnv, w http.ResponseWriter, r *http.Request) {
 	write.JSON(dbUser, w, r)
 }
 
+func getOrCreate(sharedEnv env.SharedEnv, w http.ResponseWriter, r *http.Request) {
+	decoder := json.NewDecoder(r.Body)
+	var req model.GetOrCreateUserReq
+	err := decoder.Decode(&req)
+	if err != nil || &req == nil {
+		write.Error(errors.NoJSONBody, w, r)
+		return
+	}
+
+	dbUser, err := sharedEnv.UserRepo().GetUser(req.WalletAddress)
+	if err == nil {
+		write.JSON(dbUser, w, r)
+		return
+	} else if err != nil && err != gorm.ErrRecordNotFound  {
+		write.Error(err, w, r)
+		return
+	} else if err == gorm.ErrRecordNotFound {
+		dbUser2, err2 := sharedEnv.UserRepo().SignUp(req.WalletAddress)
+		if err2 != nil {
+			write.Error(err2, w, r)
+		}
+		write.JSON(dbUser2, w, r)
+		return
+	}
+
+}
+
 func auth(sharedEnv env.SharedEnv, w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	var req model.AuthReq
@@ -99,7 +129,7 @@ func auth(sharedEnv env.SharedEnv, w http.ResponseWriter, r *http.Request) {
 	if err != nil  {
 		write.Error(err, w, r)
 	}
-
+	jwt.WriteUserCookie(w, dbUser)
 	write.JSON(dbUser, w, r)
 }
 

@@ -56,7 +56,7 @@ func WriteUserCookie(w http.ResponseWriter, u *model.User) {
 		Name:     cookieName,
 		Value:    encodeUser(u),
 		Path:     "/",
-		HttpOnly: true,
+		//HttpOnly: false,
 		//Secure:   true,
 	})
 }

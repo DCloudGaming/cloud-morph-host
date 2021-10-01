@@ -4,6 +4,10 @@ type SignUpReq struct {
 	WalletAddress string `json:"wallet_address"`
 }
 
+type GetOrCreateUserReq struct {
+	WalletAddress string `json:"wallet_address"`
+}
+
 type AuthReq struct {
 	WalletAddress string `json:"wallet_address"`
 	Signature string `json:"signature"`
