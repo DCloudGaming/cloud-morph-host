@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/DCloudGaming/cloud-morph-host/pkg/env"
 	"github.com/DCloudGaming/cloud-morph-host/pkg/errors"
 	"github.com/DCloudGaming/cloud-morph-host/pkg/jwt"
@@ -14,13 +15,15 @@ import (
 
 func UserHandler(
 	sharedEnv *env.SharedEnv, w http.ResponseWriter, r *http.Request,
-	u *model.User, head string) {
+	u *model.User, hostU *model.User, head string) {
 	switch r.Method {
 		case http.MethodGet:
 			if head == "" {
 				getUser(*sharedEnv, w, r)
 			} else if head == "getFromToken" {
 				getUserFromToken(*sharedEnv, *u, w, r)
+			} else if head == "genOTP" {
+				genOTP(*sharedEnv, *u, w, r)
 			} else if head == "profile" {
 				getProfile(*sharedEnv, *u, w, r)
 			} else {
@@ -37,6 +40,10 @@ func UserHandler(
 				mockAuth(*sharedEnv, w, r)
 			} else if head == "update" {
 				updateUser(*sharedEnv, *u, w, r)
+			} else if head == "verifyOTP" {
+				fmt.Println("VerifyOTP")
+				fmt.Println(*u)
+				verifyOTP(*sharedEnv, w, r)
 			} else {
 				write.Error(errors.RouteNotFound, w, r)
 			}
@@ -184,4 +191,26 @@ func mockAuth(sharedEnv env.SharedEnv, w http.ResponseWriter, r *http.Request) {
 
 	dbUser, _ := sharedEnv.UserRepo().GetUser(req.WalletAddress)
 	jwt.WriteUserCookie(w, dbUser)
+}
+
+func genOTP(sharedEnv env.SharedEnv, u model.User, w http.ResponseWriter, r *http.Request) {
+	otp, _ := sharedEnv.UserRepo().GenOTP(u.WalletAddress)
+	write.JSON(otp, w, r)
+}
+
+func verifyOTP(sharedEnv env.SharedEnv, w http.ResponseWriter, r *http.Request) {
+	decoder := json.NewDecoder(r.Body)
+	var req model.VerifyOtpReq
+	err := decoder.Decode(&req)
+	if err != nil || &req == nil {
+		write.Error(errors.NoJSONBody, w, r)
+	}
+	smartOtp, _ := sharedEnv.UserRepo().VerifyOTP(req)
+	if smartOtp != nil {
+		dbUser, _ := sharedEnv.UserRepo().GetUser(smartOtp.WalletAddress)
+		var resp model.VerifyOTPResponse
+		resp.WalletAddress = dbUser.WalletAddress
+		resp.Token = jwt.EncodeUser(dbUser)
+		write.JSON(resp, w, r)
+	}
 }

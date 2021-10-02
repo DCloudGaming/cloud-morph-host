@@ -13,7 +13,7 @@ func ApiHandlerWrapper(
 	sharedEnv *env.SharedEnv,
 	f_in func(
 		sharedEnv *env.SharedEnv, w http.ResponseWriter, r *http.Request,
-		u *model.User, headPath string)) (f func(w http.ResponseWriter, r *http.Request)) {
+		u *model.User, hostU *model.User, headPath string)) (f func(w http.ResponseWriter, r *http.Request)) {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		w.Header().Set("Access-Control-Allow-Credentials", "true")
@@ -30,11 +30,19 @@ func ApiHandlerWrapper(
 
 		u, _ := jwt.HandleUserCookie(*sharedEnv, w, r)
 
+		//decoder := json.NewDecoder(r.Body)
+		//var req model.HostJwtToken
+		//err := decoder.Decode(&req)
+		var hostU *model.User = nil
+		//if err == nil && &req != nil {
+		//	hostU, _ = jwt.DecodeUser(req.Token)
+		//}
+
 		var head string
 		head, r.URL.Path = utils.ShiftPath(r.URL.Path)
 		head, r.URL.Path = utils.ShiftPath(r.URL.Path)
 		head, r.URL.Path = utils.ShiftPath(r.URL.Path)
 
-		f_in(sharedEnv, w, r, u, head)
+		f_in(sharedEnv, w, r, u, hostU, head)
 	}
 }

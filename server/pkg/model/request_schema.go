@@ -24,6 +24,10 @@ type MockAuthReq struct {
 	WalletAddress string `json:"wallet_address"`
 }
 
+type VerifyOtpReq struct {
+	Otp string `json:"otp"`
+}
+
 type RegisterAppReq struct {
 	WalletAddress string `json:"wallet_address"`
 	AppPaths []string `json:"app_paths"`
@@ -44,3 +48,6 @@ type UpdateSessionReq struct {
 	StreamStatus int `json:"stream_status"`
 }
 
+type HostJwtToken struct {
+	Token string `json:"token"`
+}

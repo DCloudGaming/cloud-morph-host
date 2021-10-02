@@ -17,6 +17,12 @@ type User struct {
 	Status  Status
 }
 
+type SmartOtp struct {
+	gorm.Model
+	WalletAddress string `gorm:"primaryKey"`
+	Otp string `json:"otp"`
+}
+
 type Status int
 
 const (
@@ -31,6 +37,8 @@ type UserRepo interface {
 	Auth(walletAddress string, signature string) (*User, error)
 	GetUser(walletAddress string) (*User, error)
 	UpdateUser(req UpdateUserReq) (*User, error)
+	GenOTP(walletAddress string) (*SmartOtp, error)
+	VerifyOTP(req VerifyOtpReq) (*SmartOtp, error)
 }
 
 type userRepo struct {
@@ -85,4 +93,19 @@ func (r *userRepo) UpdateUser(req UpdateUserReq) (*User, error) {
 	user.Name = req.Name
 	r.db.Save(&user)
 	return &user, nil
+}
+
+func (r *userRepo) GenOTP(walletAddress string) (*SmartOtp, error) {
+	otp := SmartOtp{WalletAddress: walletAddress, Otp: utils.GenerateRandomString(10)}
+	r.db.Create(&otp)
+	return &otp, nil
+}
+
+func (r *userRepo) VerifyOTP(req VerifyOtpReq) (*SmartOtp, error) {
+	var smartOtp SmartOtp
+	r.db.First(&smartOtp, "otp = ?", req.Otp)
+	if &smartOtp != nil && smartOtp.Otp != req.Otp {
+		return &smartOtp, nil
+	}
+	return &smartOtp, nil
 }

@@ -4,6 +4,11 @@ type RegisterBatchResponse struct {
 	RowsAffected int64 `json:"rows_affected"`
 }
 
+type VerifyOTPResponse struct {
+	WalletAddress string `json:"wallet_address"`
+	Token string `json:"token"`
+}
+
 type UserDetailProfileResponse struct {
 	WalletAddress string           `json:"wallet_address"`
 	CurUnreleasedBalance int       `json:"cur_unreleased_balance"`

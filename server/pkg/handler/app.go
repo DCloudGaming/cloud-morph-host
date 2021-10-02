@@ -13,7 +13,7 @@ import (
 
 func AppHandler(
 	sharedEnv *env.SharedEnv, w http.ResponseWriter, r *http.Request,
-	u *model.User, head string) {
+	u *model.User, hostU *model.User, head string) {
 	switch r.Method {
 	case http.MethodGet:
 		if head == "" {
@@ -27,7 +27,7 @@ func AppHandler(
 		}
 	case http.MethodPost:
 		if head == "registerApp" {
-			registerApp(*sharedEnv, *u, w, r)
+			registerApp(*sharedEnv, *hostU, *u, w, r)
 		} else if head == "startSession" {
 			startSession(*sharedEnv, *u, w, r)
 		} else if head == "updateSession" {
@@ -76,7 +76,7 @@ func getDiscoverApps(sharedEnv env.SharedEnv, u model.User, w http.ResponseWrite
 	write.JSON(resp, w, r)
 }
 
-func registerApp(sharedEnv env.SharedEnv, u model.User, w http.ResponseWriter, r *http.Request) {
+func registerApp(sharedEnv env.SharedEnv, hostU model.User, u model.User, w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	var req model.RegisterAppReq
 	err := decoder.Decode(&req)
@@ -85,8 +85,7 @@ func registerApp(sharedEnv env.SharedEnv, u model.User, w http.ResponseWriter, r
 		return
 	}
 
-	isAllow := perm.RequireOwner(u.WalletAddress, req.WalletAddress) &&
-		perm.RequireAuthenticated(sharedEnv, w, r)
+	isAllow := perm.RequireOwner(hostU.WalletAddress, req.WalletAddress)
 	if !isAllow {
 		write.Error(errors.RouteUnauthorized, w, r)
 		return

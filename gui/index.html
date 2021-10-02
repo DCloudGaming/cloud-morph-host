@@ -16,7 +16,7 @@
     <div id="addAppModal" class="modal">
       <div class="modal-content">
         <span id="addAppClose" class="close">&times;</span>
-        <div class="row space-between center mb-2 mt-3">
+        <div class="row space-between center mb-2 mt-3" id="NotepadRegister">
           <input type="checkbox" checked="checked" name="radio" />
           <select name="app" id="app">
             <option value="notepad">Notepad</option>
@@ -38,9 +38,12 @@
     <div id="connectWalletModal" class="modal">
       <div class="modal-content">
         <span id="connectWalletClose" class="close">&times;</span>
-        <label>Wallet Address</label>
-        <br /><br />
-        <input type="text" id="walletAddress" name="walletAddress" />
+        <div>
+          <label>OTP</label>
+          <br /><br />
+          <input type="text" id="walletOTP" name="walletOTP" />
+          <button id="connectWalletButton">Verify OTP</button>
+        </div>
       </div>
     </div>
     <!-- -->
@@ -49,7 +52,8 @@
       <div class="wave -two"></div>
       <div class="wave -three"></div>
       <button id="addAppButton">Add app</button>
-      <button id="connectWalletButton">Connect wallet</button>
+      <button id="connectWalletButtonParent">Wallet OTP</button>
+      <text id ="walletAddressValue"> Wallet Address </text>
       <div id="controller">
         <div class="row flex-end">
           <p>Streaming <b>Free Fire</b></p>

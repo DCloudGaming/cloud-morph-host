@@ -2,6 +2,7 @@ drop table users;
 -- drop table host_configs;
 drop table registered_apps;
 drop table stream_sessions;
+drop table smart_otps;
 
 -- Please note INTEGER is LONG too in SQLite
 
@@ -53,6 +54,15 @@ CREATE TABLE IF NOT EXISTS stream_sessions (
     client_wallet_address TEXT,
     host_wallet_address TEXT,
     app_name TEXT,
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP,
+    deleted_at TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS smart_otps (
+    id INTEGER,
+    wallet_address TEXT,
+    otp TEXT,
     created_at TIMESTAMP,
     updated_at TIMESTAMP,
     deleted_at TIMESTAMP

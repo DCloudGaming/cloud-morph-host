@@ -3,6 +3,8 @@
 // Modules to control application life and create native browser window
 const { app, BrowserWindow } = require('electron')
 const path = require('path')
+const axios = require("axios");
+axios.defaults.withCredentials = true;
 
 function createWindow() {
   // Create the browser window.
@@ -82,23 +84,26 @@ ipcMain.on("btnclick", function (event, arg) {
   event.sender.send("btnclick-task-finished", "yes");
 });
 
-ipcMain.on("connectWallet", function(event, arg) {
-  const { net } = require('electron')
-  const electron = require('electron');
-  console.log("Connect Wallet Request");
-
-  var walletAddress = document.getElementById('walletAddress').value;
-  var postData = JSON.stringify([{"wallet_address": walletAddress}]);
-  const request = net.request({
-    method: 'POST',
-    protocol: 'http:',
-    hostname: 'localhost',
-    port: 8082,
-    path: '/connectWallet',
+ipcMain.on("connectWallet", async function(event, arg) {
+  console.log(arg)
+  console.log("HIEU")
+  var response = await axios({
+    method: "POST",
+    url: "http://localhost:8080/api/users/verifyOTP",
     headers: {
       "Content-Type": "application/json",
     },
+    data: {
+      otp: arg
+    },
+    withCredentials: true
   })
+
+  console.log(response.data);
+  event.returnValue = {
+    WalletAddress: response.data.wallet_address,
+    Token: response.data.token
+  }
 
 });
 
@@ -108,38 +113,9 @@ ipcMain.on("register", function (event, arg) {
 
   const handleRegister = (path) => {
     event.sender.send("registerFinished", path);
-
-    const registerURL = "";
-    var postData = JSON.stringify([{ "app_path": path }]);
-    console.log("Send HTTP register request to notepad ", postData)
-    const request = net.request({
-      method: 'POST',
-      protocol: 'http:',
-      hostname: 'localhost',
-      port: 8082,
-      path: '/registerApp',
-      headers: {
-        "Content-Type": "application/json",
-      },
-    })
-
-    console.log(2);
-    request.on('response', (response) => {
-      console.log(`STATUS: ${response.statusCode}`)
-      console.log(`HEADERS: ${JSON.stringify(response.headers)}`)
-      response.on('data', (chunk) => {
-        console.log(`BODY: ${chunk}`)
-      })
-      response.on('end', () => {
-        console.log('No more data in response.')
-      })
-    })
-
-    request.on('error', (error) => {
-      console.error(error)
-    })
-    request.write(postData);
-    request.end();
+    // event.returnValue = {
+    //   Path: path
+    // }
   }
 
   dialog.showOpenDialog({ properties: ['openFile', 'multiSelections'] }).then(result => {
