@@ -219,7 +219,7 @@ func (c *ccImpl) launchApp(curVideoRTPPort int, curAudioRTPPort int, cfg config.
 	if c.osType == Windows {
 		params = append(params, []string{appPath, filename}...)
 	} else {
-		appTitle := "Minesweeper"
+		appTitle := "." // Experiement: auto detection title
 		params = append(params, []string{dirName, filename, appTitle}...)
 	}
 

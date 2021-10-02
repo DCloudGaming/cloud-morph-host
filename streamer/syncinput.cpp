@@ -13,7 +13,7 @@ int server; // TODO: Move to local variable
 chrono::_V2::system_clock::time_point last_ping;
 bool done;
 HWND hwnd;
-char *winTitle;
+string winTitle;
 char dockerHost[20];
 bool isMac;
 bool isWindows;
@@ -89,7 +89,7 @@ void getDesktopResolution(int &width, int &height)
     height = desktop.bottom;
 }
 
-HWND getWindowByTitle(char *pattern)
+HWND getWindowByTitle(string pattern)
 {
     HWND hwnd = NULL;
 
@@ -105,8 +105,12 @@ HWND getWindowByTitle(char *pattern)
         GetWindowText(hwnd, title, len);
         string st(title);
         cout << "len " << len << " Title : " << st << endl;
+        if ((pattern == "" || pattern == ".") && st != "Default IME" && st != "") {
+            cout << "Found " << hwnd << endl;
+            return hwnd;
+        }
 
-        if (st.find(pattern) != string::npos)
+        if (pattern != "" && st.find(pattern) != string::npos)
         {
             cout << "Found " << hwnd << endl;
             return hwnd;
@@ -335,13 +339,13 @@ void processEvent(string ev, bool isDxGame)
 
 int main(int argc, char *argv[])
 {
-    winTitle = (char *)"Notepad";
+    winTitle = "";
     bool isDxGame = false;
     isMac = false;
     isWindows = false;
     if (argc > 1)
     {
-        winTitle = argv[1];
+        winTitle = string(argv[1]);
     }
     if (argc > 2)
     {
