@@ -213,15 +213,14 @@ func (c *ccImpl) runApp(params []string) {
 
 // done to forcefully stop all processes
 func (c *ccImpl) launchApp(curVideoRTPPort int, curAudioRTPPort int, cfg config.Config, appPath string) chan struct{} {
-	_, filename := filepath.Split(appPath)
+	dirName, filename := filepath.Split(appPath)
 	fmt.Println("Running ", appPath, " ", filename)
 	params := []string{}
 	if c.osType == Windows {
 		params = append(params, []string{appPath, filename}...)
 	} else {
-		mountedDirName := "/winevm/apps"
 		appTitle := "Minesweeper"
-		params = append(params, []string{mountedDirName, filename, appTitle}...)
+		params = append(params, []string{dirName, filename, appTitle}...)
 	}
 
 	if cfg.HWKey {

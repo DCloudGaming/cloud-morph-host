@@ -5,9 +5,9 @@ if [ $(uname -s) == "Darwin" ]
 then
     echo "Spawn container on Mac"
     docker run -d --privileged --rm --name "appvm" \
-    --mount type=bind,source="$(pwd)"/apps,target=/apps \
+    --mount type=bind,source=$1,target=/apps \
     --mount type=bind,source="$(pwd)"/supervisord.conf,target=/etc/supervisor/conf.d/supervisord.conf  \
-    --env "apppath=$1" \
+    --env "apppath=/winevm/apps" \
     --env "appfile=$2" \
     --env "appname=$3" \
     --env "hwkey=$4" \
@@ -20,10 +20,10 @@ then
 else 
     echo "Spawn container on Linux"
     docker run -t -d --privileged --rm --name "appvm" \
-    --mount type=bind,source="$(pwd)"/apps,target=/apps \
+    --mount type=bind,source=$1,target=/apps \
     --mount type=bind,source="$(pwd)"/supervisord.conf,target=/etc/supervisor/conf.d/supervisord.conf  \
     --network=host \
-    --env "apppath=$1" \
+    --env "apppath=/winevm/apps" \
     --env "appfile=$2" \
     --env "appname=$3" \
     --env "hwkey=$4" \
