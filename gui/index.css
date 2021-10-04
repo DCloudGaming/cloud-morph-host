@@ -139,8 +139,9 @@ button#addAppButton {
   padding: 3rem;
   border: 1px solid #888;
   width: 50%;
-  height: 20%;
+  height: 50%;
   border-radius: 3rem;
+  overflow: scroll;
 }
 
 /* The Close Button */

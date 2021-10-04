@@ -16,11 +16,10 @@
     <div id="addAppModal" class="modal">
       <div class="modal-content">
         <span id="addAppClose" class="close">&times;</span>
-        <div class="row space-between center mb-2 mt-3">
+        <div id="appRowWrapper" class="mt-3 mb-1"></div>
+        <div id="appRow" style="display: none">
           <input type="checkbox" checked="checked" name="radio" />
-          <select name="app" id="app">
-            <option value="notepad">Notepad</option>
-          </select>
+          <select name="app"></select>
           <input
             type="text"
             id="apppathText"
@@ -29,8 +28,15 @@
           />
           <button class="button" id="registerButton">Register</button>
         </div>
-        <div class="row flex-end">
-          <button class="button-highlight" id="saveButton">Save</button>
+        <div class="row space-between">
+          <button id="addnew" onclick="addAppRow(0)">New app</button>
+          <button
+            class="button-highlight"
+            id="saveButton"
+            onclick="updateApps()"
+          >
+            Save
+          </button>
         </div>
         <br />
       </div>
@@ -66,6 +72,8 @@
     </div>
 
     <!-- Client java script -->
-    <script src="./renderer.js"></script>
+    <script src="./js/renderer.js"></script>
+    <script src="./js/add_app_form.js"></script>
+    <script src="./js/modal.js"></script>
   </body>
 </html>
