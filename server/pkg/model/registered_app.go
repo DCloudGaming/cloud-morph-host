@@ -31,6 +31,7 @@ func NewAppRepo(db *gorm.DB) AppRepo {
 // TODO: Only register the unregistered apps, and ignore the rest. For now it might fail
 func (r *appRepo) RegisterBatch(req RegisterAppReq) (int64, error) {
 	var apps = []RegisteredApp{}
+	// TODO: Refactor
 	for i := 0; i < len(req.AppPaths); i++ {
 		apps = append(apps, RegisteredApp{WalletAddress: req.WalletAddress, AppPath: req.AppPaths[i], AppName: req.AppNames[i]})
 	}

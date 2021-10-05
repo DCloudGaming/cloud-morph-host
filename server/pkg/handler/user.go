@@ -2,7 +2,6 @@ package handler
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/DCloudGaming/cloud-morph-host/pkg/env"
 	"github.com/DCloudGaming/cloud-morph-host/pkg/errors"
 	"github.com/DCloudGaming/cloud-morph-host/pkg/jwt"
@@ -26,6 +25,8 @@ func UserHandler(
 				genOTP(*sharedEnv, *u, w, r)
 			} else if head == "profile" {
 				getProfile(*sharedEnv, *u, w, r)
+			} else if head == "getAdminSettings" {
+				getAdminSettings(*sharedEnv, *u, w, r)
 			} else {
 				write.Error(errors.RouteNotFound, w, r)
 			}
@@ -40,9 +41,9 @@ func UserHandler(
 				mockAuth(*sharedEnv, w, r)
 			} else if head == "update" {
 				updateUser(*sharedEnv, *u, w, r)
+			} else if head == "updateAdminSettings" {
+				updateAdminSettings(*sharedEnv, *u, w, r)
 			} else if head == "verifyOTP" {
-				fmt.Println("VerifyOTP")
-				fmt.Println(*u)
 				verifyOTP(*sharedEnv, w, r)
 			} else {
 				write.Error(errors.RouteNotFound, w, r)
@@ -51,8 +52,6 @@ func UserHandler(
 			write.Error(errors.BadRequestMethod, w, r)
 		}
 }
-
-
 
 func getProfile(sharedEnv env.SharedEnv, u model.User, w http.ResponseWriter, r *http.Request) {
 	walletAddress := r.URL.Query().Get("wallet_address")
@@ -79,6 +78,53 @@ func getProfile(sharedEnv env.SharedEnv, u model.User, w http.ResponseWriter, r 
 func getUserFromToken(sharedEnv env.SharedEnv, u model.User, w http.ResponseWriter, r *http.Request) {
 
 	dbUser, err := sharedEnv.UserRepo().GetUser(u.WalletAddress)
+	if err != nil {
+		write.Error(err, w, r)
+	}
+
+	write.JSON(dbUser, w, r)
+}
+
+func getAdminSettings(sharedEnv env.SharedEnv, u model.User, w http.ResponseWriter, r *http.Request) {
+	isAllow := perm.RequireAdmin(sharedEnv, u.WalletAddress)
+	if !isAllow {
+		write.Error(errors.RouteUnauthorized, w, r)
+		return
+	}
+
+	dbAdminConfigs, err := sharedEnv.UserRepo().GetAdminSettings()
+	if err != nil {
+		write.Error(err, w, r)
+	}
+
+	var resp model.GetAdminConfigsResponse
+	resp.AllowedApps = []string{}
+	// TODO: Fix
+	if len(dbAdminConfigs) > 0 {
+		resp.HourlyRate = dbAdminConfigs[0].HourlyRate
+		for _, adminSetting := range dbAdminConfigs {
+			resp.AllowedApps = append(resp.AllowedApps, adminSetting.AllowedApp)
+		}
+	}
+
+	write.JSON(resp, w, r)
+}
+
+func updateAdminSettings(sharedEnv env.SharedEnv, u model.User, w http.ResponseWriter, r *http.Request) {
+	decoder := json.NewDecoder(r.Body)
+	var req model.UpdateAdminReq
+	err := decoder.Decode(&req)
+	if err != nil || &req == nil {
+		write.Error(errors.NoJSONBody, w, r)
+	}
+
+	isAllow := perm.RequireAdmin(sharedEnv, u.WalletAddress)
+	if !isAllow {
+		write.Error(errors.RouteUnauthorized, w, r)
+		return
+	}
+
+	dbUser, err := sharedEnv.UserRepo().UpdateAdminSettings(req)
 	if err != nil {
 		write.Error(err, w, r)
 	}
@@ -143,12 +189,12 @@ func getOrCreate(sharedEnv env.SharedEnv, u model.User, w http.ResponseWriter, r
 		return
 	}
 
-	if (u.WalletAddress != "") {
+	if (u.WalletAddress == req.WalletAddress) {
 		return
 	}
 
 	dbUser, err := sharedEnv.UserRepo().GetUser(req.WalletAddress)
-	if err == nil {
+	if u.WalletAddress != dbUser.WalletAddress && err == nil {
 		write.JSON(dbUser, w, r)
 		return
 	} else if err != nil && err != gorm.ErrRecordNotFound  {
@@ -176,6 +222,7 @@ func auth(sharedEnv env.SharedEnv, w http.ResponseWriter, r *http.Request) {
 	dbUser, err := sharedEnv.UserRepo().Auth(req.WalletAddress, req.Signature)
 	if err != nil  {
 		write.Error(err, w, r)
+		return
 	}
 	jwt.WriteUserCookie(w, dbUser)
 	write.JSON(dbUser, w, r)

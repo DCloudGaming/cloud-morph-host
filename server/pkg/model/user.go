@@ -23,6 +23,17 @@ type SmartOtp struct {
 	Otp string `json:"otp"`
 }
 
+type WhitelistedAdmins struct {
+	gorm.Model
+	WalletAddress string `gorm:"primaryKey"`
+}
+
+type AdminConfigs struct {
+	gorm.Model
+	HourlyRate int `json:"hourly_rate"`
+	AllowedApp string `gorm:"primaryKey"`
+}
+
 type Status int
 
 const (
@@ -39,6 +50,9 @@ type UserRepo interface {
 	UpdateUser(req UpdateUserReq) (*User, error)
 	GenOTP(walletAddress string) (*SmartOtp, error)
 	VerifyOTP(req VerifyOtpReq) (*SmartOtp, error)
+	VerifyAdmin(checkAddress string) (bool)
+	GetAdminSettings() ([]AdminConfigs, error)
+	UpdateAdminSettings(req UpdateAdminReq) (int64, error)
 }
 
 type userRepo struct {
@@ -81,8 +95,8 @@ func (r *userRepo) Auth(walletAddress string, signature string) (*User, error) {
 
 func (r *userRepo) GetUser(walletAddress string) (*User, error) {
 	var user User
-	r.db.First(&user, "wallet_address = ?", walletAddress)
-	return &user, nil
+	err := r.db.First(&user, "wallet_address = ?", walletAddress).Error
+	return &user, err
 }
 
 func (r *userRepo) UpdateUser(req UpdateUserReq) (*User, error) {
@@ -108,4 +122,29 @@ func (r *userRepo) VerifyOTP(req VerifyOtpReq) (*SmartOtp, error) {
 		return &smartOtp, nil
 	}
 	return &smartOtp, nil
+}
+
+func (r *userRepo) VerifyAdmin(checkAddress string) (bool) {
+	var admin WhitelistedAdmins
+	err := r.db.First(&admin, "wallet_address = ?", checkAddress)
+	return err != nil
+}
+
+func (r *userRepo) GetAdminSettings() ([]AdminConfigs, error) {
+	var adminConfigs []AdminConfigs
+	err := r.db.Find(&adminConfigs).Error
+	return adminConfigs, err
+}
+
+func (r *userRepo) UpdateAdminSettings(req UpdateAdminReq) (int64, error) {
+	// TODO: Fix
+	r.db.Where("hourly_rate > -1").Delete(AdminConfigs{})
+	var adminConfigs = []AdminConfigs{}
+	// TODO: Refactor
+	for i := 0; i < len(req.AllowedApps); i++ {
+		adminConfigs = append(adminConfigs, AdminConfigs{HourlyRate: req.HourlyRate, AllowedApp: req.AllowedApps[i]})
+	}
+	dbRes := r.db.Create(&adminConfigs)
+
+	return dbRes.RowsAffected, dbRes.Error
 }

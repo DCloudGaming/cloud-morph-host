@@ -1,5 +1,7 @@
 drop table users;
 -- drop table host_configs;
+drop table whitelisted_admins;
+drop table admin_configs;
 drop table registered_apps;
 drop table stream_sessions;
 drop table smart_otps;
@@ -17,6 +19,23 @@ CREATE TABLE IF NOT EXISTS users (
     location TEXT,
     name TEXT,
     hourly_rate INTEGER,
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP,
+    deleted_at TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS whitelisted_admins (
+    id INTEGER,
+    wallet_address TEXT PRIMARY KEY,
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP,
+    deleted_at TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS admin_configs (
+    id INTEGER,
+    hourly_rate INTEGER,
+    allowed_app TEXT PRIMARY KEY,
     created_at TIMESTAMP,
     updated_at TIMESTAMP,
     deleted_at TIMESTAMP
@@ -67,3 +86,5 @@ CREATE TABLE IF NOT EXISTS smart_otps (
     updated_at TIMESTAMP,
     deleted_at TIMESTAMP
 );
+
+INSERT INTO whitelisted_admins (id, wallet_address) VALUES (1, '0xbe8978953e7f2b908e92189adbc39ecaeb85560f');

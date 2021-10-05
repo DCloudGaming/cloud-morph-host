@@ -87,8 +87,6 @@ func HandleUserCookie(e env.SharedEnv, w http.ResponseWriter, r *http.Request) (
 // userFromCookie builds a user object from a JWT, if it's valid
 func userFromCookie(r *http.Request) (*model.User, error) {
 	cookie, _ := r.Cookie(cookieName)
-	fmt.Println("cookie")
-	fmt.Println(cookie)
 	var tokenString string
 	if cookie != nil {
 		tokenString = cookie.Value

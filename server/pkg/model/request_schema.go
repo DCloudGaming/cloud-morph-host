@@ -15,6 +15,11 @@ type UpdateUserReq struct {
 	Name string `json:"name"`
 }
 
+type UpdateAdminReq struct {
+	HourlyRate int `json:"hourly_rate"`
+	AllowedApps []string `json:"allowed_apps"`
+}
+
 type AuthReq struct {
 	WalletAddress string `json:"wallet_address"`
 	Signature string `json:"signature"`

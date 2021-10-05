@@ -37,3 +37,8 @@ func RequireOwner(address1 string,address2 string) (bool) {
 	}
 	return true
 }
+
+func RequireAdmin(sharedEnv env.SharedEnv, checkAddress string) (bool) {
+	isAdmin := sharedEnv.UserRepo().VerifyAdmin(checkAddress)
+	return isAdmin
+}
