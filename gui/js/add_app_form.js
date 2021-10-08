@@ -1,4 +1,3 @@
-// TODO: Replace this mock data
 const sampleAllowedApps = [
   {
     id: 1, // ID in the allowed apps list, from server
@@ -60,8 +59,7 @@ function getAppRowId(eleId) {
   return `appRow-${eleId}`;
 }
 
-function addAppRow(serverId) {
-  appRowId++;
+function addAppRow(serverId, allowedApps, chosenName="") {
   const id = serverId != 0 ? serverId : appRowId;
   var newDiv = document.createElement("div");
   newDiv.id = getAppRowId(id);
@@ -75,18 +73,30 @@ function addAppRow(serverId) {
     getAppRowId(id)
   );
   nameElement.id = `app-${id}`;
-  nameElement.innerHTML = sampleAllowedApps.map(
-    (app) => `<option value=${app.id}>${app.name}</option>`
+  nameElement.innerHTML = allowedApps.map(
+      (app_name) => {
+        if (chosenName == "") {
+          return `<option value=${id}>${app_name}</option>`;
+        }
+        if (app_name == chosenName) {
+          return `<option value=${id} selected>${app_name}</option>`;
+        }
+      }
   );
+
   pathElement.id = `apppathText-${id}`;
   registerElement.id = `registerButton-${id}`;
+  appRowId++;
+  registerElement.addEventListener("click", function () {
+    //send the info to main process . we can pass any arguments as second param.
+    // ipcRender.send will pass the information to main process. Here is event to open file dialog
+    ipcRenderer.send("register", {appPathText: pathElement.id, id: id});
+  });
 }
 
 function removeAppRow(id) {
   d = document;
   var ele = d.getElementById(getAppRowId(id));
-  console.log(id);
-  console.log(ele);
   var parentEle = d.getElementById("appRowWrapper");
   parentEle.removeChild(ele);
 }
@@ -110,34 +120,44 @@ function getAppRowElements(id) {
 }
 
 // Handlers
-function prefillAddAppForm(registeredApp) {
+function prefillAddAppForm() {
+  let getAllowedAppsResponse = ipcRenderer.sendSync("getAllowedApps");
+  let allowedApps = getAllowedAppsResponse.AllowedApps;
+
+  let getRegisteredAppsResponse = ipcRenderer.sendSync("getRegisteredApps", localStorage.getItem("WalletAddress"));
+  let registeredApps = getRegisteredAppsResponse.AppMetas;
+
   const wrapper = document.getElementById("appRowWrapper");
-  registeredApp.forEach((element) => {
-    addAppRow(element.id);
+  registeredApps.forEach((element) => {
+    addAppRow(appRowId, allowedApps, chosenName=element.app_name);
     const { selectedElement, nameElement, pathElement, appRow } =
-      getAppRowElements(getAppRowId(element.id));
-    selectedElement.checked = element.selected;
-    nameElement.value = element.id;
-    pathElement.value = element.path;
+      getAppRowElements(getAppRowId(appRowId-1));
+    selectedElement.checked = true;
+    nameElement.value = appRowId;
+    pathElement.value = element.app_path;
   });
 }
 
 function updateApps() {
   const appRows = Array.from(document.getElementsByClassName("app-row"));
-  const body = appRows.map((appRow) => {
-    const { selectedElement, nameElement, pathElement } = getAppRowElements(
-      appRow.id
+  const appPaths = [];
+  const appNames = [];
+  appRows.forEach((appRow) => {
+    const {selectedElement, nameElement, pathElement} = getAppRowElements(
+        appRow.id
     );
-    return {
-      id: appRow.id, // ID from server if it's an existing entry, random ID otherwise
-      name: nameElement.options[nameElement.selectedIndex].innerText,
-      selected: selectedElement.checked,
-      path: pathElement.value,
-    };
+    // TODO: Store checked/unchecked info in backend too.
+    if (selectedElement.checked) {
+      appPaths.push(pathElement.value);
+      appNames.push(nameElement.options[nameElement.selectedIndex].innerText)
+    }
   });
-
-  console.log("Sending to server: ", body);
+  let response = ipcRenderer.sendSync("registerApps", {
+    walletAddress: localStorage.getItem("WalletAddress"),
+    token: localStorage.getItem("Token"),
+    appPaths: appPaths, appNames: appNames
+  })
 }
 
 // Main
-prefillAddAppForm(sampleRegisteredApps);
+prefillAddAppForm();

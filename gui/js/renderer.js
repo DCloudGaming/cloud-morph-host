@@ -1,24 +1,12 @@
 // include the ipc module to communicate with main process.
 const ipcRenderer = require("electron").ipcRenderer;
-const axios = require("axios");
-axios.defaults.withCredentials = true;
 
 const apppathText = document.getElementById("apppathText");
 
-const registerButton = document.getElementById("registerButton");
-registerButton.addEventListener("click", function () {
-  var arg = "secondparam";
-
-  //send the info to main process . we can pass any arguments as second param.
-  // ipcRender.send will pass the information to main process. Here is event to open file dialog
-  ipcRenderer.send("register", {});
-});
-
 const connectWalletButton = document.getElementById("connectWalletButton");
 connectWalletButton.addEventListener("click", async function () {
-  var otp = document.getElementById('walletOTP').value;
-  var response = ipcRenderer.sendSync("connectWallet", otp);
-  console.log(response);
+  let otp = document.getElementById('walletOTP').value;
+  let response = ipcRenderer.sendSync("connectWallet", otp);
   document.getElementById("walletAddressValue").innerText = "Wallet Address: " + response.WalletAddress
 
   // TODO : Save in more secure place. For now can't save in cookie due to bug
@@ -28,13 +16,20 @@ connectWalletButton.addEventListener("click", async function () {
 
 //ipcRenderer.on will receive the “btnclick-task-finished'” info from main process
 ipcRenderer.on("registerFinished", function (event, param) {
-  console.log(param);
+  let appPathText = document.getElementById(param.appPathText);
+  appPathText.value = param.Path;
 });
 
+const addNewAppButton = document.getElementById("addnew");
+addNewAppButton.addEventListener("click", async function () {
+  let response = ipcRenderer.sendSync("getAllowedApps");
+  addAppRow(0, response.AllowedApps);
+})
+
 const setupModal = (modalId, btnId, spanId) => {
-  var modal = document.getElementById(modalId);
-  var btn = document.getElementById(btnId);
-  var span = document.getElementById(spanId);
+  let modal = document.getElementById(modalId);
+  let btn = document.getElementById(btnId);
+  let span = document.getElementById(spanId);
   console.log(modal);
 
   btn.onclick = function () {

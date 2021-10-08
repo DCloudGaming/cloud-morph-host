@@ -85,8 +85,6 @@ ipcMain.on("btnclick", function (event, arg) {
 });
 
 ipcMain.on("connectWallet", async function(event, arg) {
-  console.log(arg)
-  console.log("HIEU")
   var response = await axios({
     method: "POST",
     url: "http://localhost:8080/api/users/verifyOTP",
@@ -107,15 +105,63 @@ ipcMain.on("connectWallet", async function(event, arg) {
 
 });
 
+ipcMain.on("registerApps", async function(event, arg) {
+  console.log(arg);
+  var response = await axios({
+    method: "POST",
+    url: "http://localhost:8080/api/apps/registerApp",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    data: {
+      wallet_address: arg.walletAddress,
+      token: arg.token,
+      app_paths: arg.appPaths,
+      app_names: arg.appNames
+    },
+    withCredentials: true
+  })
+
+});
+
+ipcMain.on("getAllowedApps", async function(event, arg) {
+  var response = await axios({
+    method: "GET",
+    url: "http://localhost:8080/api/users/getAdminSettings",
+    headers: {
+      "Content-Type": "application/json",
+    }
+  })
+
+  event.returnValue = {
+    AllowedApps: response.data.allowed_apps
+  }
+});
+
+ipcMain.on("getRegisteredApps", async function(event, arg) {
+  var response = await axios({
+    method: "GET",
+    url: `http://localhost:8080/api/apps?wallet_address=${arg}`,
+    headers: {
+      "Content-Type": "application/json",
+    }
+  })
+
+  event.returnValue = {
+    AppMetas: response.data
+  }
+})
+
 //ipcMain.on will receive the “btnclick” info from renderprocess 
 ipcMain.on("register", function (event, arg) {
   const { net, dialog, electron } = require('electron')
 
   const handleRegister = (path) => {
-    event.sender.send("registerFinished", path);
-    // event.returnValue = {
-    //   Path: path
-    // }
+    event.sender.send("registerFinished", {
+      Path: path,
+      appPathText: arg.appPathText,
+      id: arg.id
+    });
   }
 
   dialog.showOpenDialog({ properties: ['openFile', 'multiSelections'] }).then(result => {
