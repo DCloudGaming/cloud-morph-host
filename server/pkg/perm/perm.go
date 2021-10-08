@@ -13,19 +13,6 @@ const (
 	GetHostAppsType = 2
 )
 
-// TODO: find ways to cast dynamically the type of req schema
-//func extractReqSchema(w http.ResponseWriter, r *http.Request, reqType int) (interface{}, bool) {
-//	decoder := json.NewDecoder(r.Body)
-//	switch reqType {
-//	case RegisterAppType:
-//		var req schema.RegisterAppReq
-//	default:
-//		var req interface{}
-//	}
-//	err := decoder.Decode(&req)
-//}
-//
-
 func RequireAuthenticated(sharedEnv env.SharedEnv, w http.ResponseWriter, r *http.Request) (bool) {
 	_, allowJwt := jwt.RequireAuth(model.StatusUnverified, sharedEnv, w, r)
 	return allowJwt

@@ -40,6 +40,10 @@ type RegisterAppReq struct {
 	AppNames []string `json:"app_names"`
 }
 
+type VoteAppReq struct {
+	AppName string `json:"app_name"`
+}
+
 type StartSessionReq struct {
 	MaxDuration int64 `json:"max_duration"`
 	ClientWalletAddress string `json:"client_wallet_address"`

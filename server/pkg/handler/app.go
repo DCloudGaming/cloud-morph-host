@@ -23,12 +23,16 @@ func AppHandler(
 			getSession(*sharedEnv, *u, w, r)
 		} else if head == "discover" {
 			getDiscoverApps(*sharedEnv, *u, w, r)
+		} else if head == "getAllowApps" {
+			getAllowApps(*sharedEnv, *u, w, r)
 		} else {
 			write.Error(errors.RouteNotFound, w, r)
 		}
 	case http.MethodPost:
 		if head == "registerApp" {
 			registerApp(*sharedEnv, *u, w, r)
+		} else if head == "voteApp" {
+			voteApp(*sharedEnv, *u, w, r)
 		} else if head == "startSession" {
 			startSession(*sharedEnv, *u, w, r)
 		} else if head == "updateSession" {
@@ -77,6 +81,35 @@ func getDiscoverApps(sharedEnv env.SharedEnv, u model.User, w http.ResponseWrite
 	write.JSON(resp, w, r)
 }
 
+func getAllowApps(sharedEnv env.SharedEnv, u model.User, w http.ResponseWriter, r *http.Request) {
+	isAllow := perm.RequireAuthenticated(sharedEnv, w, r)
+	if !isAllow {
+		write.Error(errors.RouteUnauthorized, w, r)
+		return
+	}
+
+	var resp []model.GetAllowAppResponse
+	allowApps, _ := sharedEnv.AppRepo().GetAllowedApps()
+	for _, allowApp := range allowApps {
+		voteCount := sharedEnv.AppRepo().GetVote(allowApp.AppName)
+		resp = append(resp, model.GetAllowAppResponse{AppName: allowApp.AppName, VoteCount: voteCount})
+	}
+	write.JSON(resp, w, r)
+}
+
+func getSession(sharedEnv env.SharedEnv, u model.User, w http.ResponseWriter, r *http.Request) {
+	sessionId, _ := strconv.Atoi(r.URL.Query().Get("session_id"))
+
+	isAllow := perm.RequireAuthenticated(sharedEnv, w, r)
+	if !isAllow {
+		write.Error(errors.RouteUnauthorized, w, r)
+		return
+	}
+
+	session, _ := sharedEnv.StreamSessionRepo().GetSession(sessionId)
+	write.JSON(session, w, r)
+}
+
 func registerApp(sharedEnv env.SharedEnv, u model.User, w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	var req model.RegisterAppReq
@@ -99,8 +132,15 @@ func registerApp(sharedEnv env.SharedEnv, u model.User, w http.ResponseWriter, r
 	write.JSON(model.RegisterBatchResponse{RowsAffected: rowsAffected}, w, r)
 }
 
-func getSession(sharedEnv env.SharedEnv, u model.User, w http.ResponseWriter, r *http.Request) {
-	sessionId, _ := strconv.Atoi(r.URL.Query().Get("session_id"))
+func voteApp(sharedEnv env.SharedEnv, u model.User, w http.ResponseWriter, r *http.Request) {
+	decoder := json.NewDecoder(r.Body)
+	var req model.VoteAppReq
+	err := decoder.Decode(&req)
+
+	if err != nil || &req == nil {
+		write.Error(errors.NoJSONBody, w, r)
+		return
+	}
 
 	isAllow := perm.RequireAuthenticated(sharedEnv, w, r)
 	if !isAllow {
@@ -108,8 +148,7 @@ func getSession(sharedEnv env.SharedEnv, u model.User, w http.ResponseWriter, r 
 		return
 	}
 
-	session, _ := sharedEnv.StreamSessionRepo().GetSession(sessionId)
-	write.JSON(session, w, r)
+ 	sharedEnv.AppRepo().UpdateVote(req.AppName, u.WalletAddress)
 }
 
 // For now , let only client side initiate the session, the player side will pull this status to

@@ -1,6 +1,8 @@
 drop table users;
 drop table whitelisted_admins;
 drop table admin_configs;
+drop table allowed_apps;
+drop table app_votes;
 drop table registered_apps;
 drop table stream_sessions;
 drop table smart_otps;
@@ -23,8 +25,9 @@ CREATE TABLE IF NOT EXISTS users (
     deleted_at TIMESTAMP
 );
 
+-- separate out so easier to insert new admin, rather than within `users` table
 CREATE TABLE IF NOT EXISTS whitelisted_admins (
-    id INTEGER,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     wallet_address TEXT PRIMARY KEY,
     created_at TIMESTAMP,
     updated_at TIMESTAMP,
@@ -34,10 +37,27 @@ CREATE TABLE IF NOT EXISTS whitelisted_admins (
 CREATE TABLE IF NOT EXISTS admin_configs (
     id INTEGER,
     hourly_rate INTEGER,
-    allowed_app TEXT PRIMARY KEY,
     created_at TIMESTAMP,
     updated_at TIMESTAMP,
     deleted_at TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS allowed_apps (
+    id INTEGER,
+    app_name TEXT PRIMARY KEY,
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP,
+    deleted_at TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS app_votes (
+    id INTEGER,
+    app_name TEXT,
+    wallet_address TEXT,
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP,
+    deleted_at TIMESTAMP,
+    PRIMARY KEY (app_name, wallet_address)
 );
 
 CREATE TABLE IF NOT EXISTS registered_apps (

@@ -86,19 +86,14 @@ func getUserFromToken(sharedEnv env.SharedEnv, u model.User, w http.ResponseWrit
 }
 
 func getAdminSettings(sharedEnv env.SharedEnv, u model.User, w http.ResponseWriter, r *http.Request) {
-	dbAdminConfigs, err := sharedEnv.UserRepo().GetAdminSettings()
-	if err != nil {
-		write.Error(err, w, r)
-	}
+	dbAdminConfigs, _ := sharedEnv.UserRepo().GetAdminSettings()
+	allowApps, _ := sharedEnv.AppRepo().GetAllowedApps()
 
 	var resp model.GetAdminConfigsResponse
+	resp.HourlyRate = dbAdminConfigs.HourlyRate
 	resp.AllowedApps = []string{}
-	// TODO: Fix
-	if len(dbAdminConfigs) > 0 {
-		resp.HourlyRate = dbAdminConfigs[0].HourlyRate
-		for _, adminSetting := range dbAdminConfigs {
-			resp.AllowedApps = append(resp.AllowedApps, adminSetting.AllowedApp)
-		}
+	for _, allowApp := range allowApps {
+		resp.AllowedApps = append(resp.AllowedApps, allowApp.AppName)
 	}
 
 	write.JSON(resp, w, r)
@@ -118,13 +113,9 @@ func updateAdminSettings(sharedEnv env.SharedEnv, u model.User, w http.ResponseW
 		return
 	}
 
-	adminConfigs, _ := sharedEnv.UserRepo().UpdateAdminSettings(req)
-	var allowedAppNames = make([]string, 0)
-	for i := 0; i < len(adminConfigs); i++ {
-		allowedAppNames = append(allowedAppNames, adminConfigs[i].AllowedApp)
-	}
-	sharedEnv.AppRepo().RemoveUnallowedAppsFromRegister(allowedAppNames)
-	write.JSON(adminConfigs, w, r)
+	sharedEnv.UserRepo().UpdateAdminSettings(req)
+	sharedEnv.AppRepo().RemoveUnallowedAppsFromRegister(req.AllowedApps)
+	sharedEnv.AppRepo().AllowNewApps(req.AllowedApps)
 }
 
 func getUser(sharedEnv env.SharedEnv, w http.ResponseWriter, r *http.Request) {

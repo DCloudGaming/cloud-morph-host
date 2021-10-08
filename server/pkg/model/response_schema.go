@@ -32,6 +32,11 @@ type DiscoverAppResponse struct {
 	Image string `json:"image"`
 }
 
+type GetAllowAppResponse struct {
+	AppName string `json:"app_name"`
+	VoteCount int `json:"vote_count"`
+}
+
 type GetAdminConfigsResponse struct {
 	HourlyRate int `json:"hourly_rate"`
 	AllowedApps []string `json:"allowed_apps"`

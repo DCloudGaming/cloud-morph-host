@@ -31,7 +31,6 @@ type WhitelistedAdmins struct {
 type AdminConfigs struct {
 	gorm.Model
 	HourlyRate int `json:"hourly_rate"`
-	AllowedApp string `gorm:"primaryKey"`
 }
 
 type Status int
@@ -51,8 +50,8 @@ type UserRepo interface {
 	GenOTP(walletAddress string) (*SmartOtp, error)
 	VerifyOTP(req VerifyOtpReq) (*SmartOtp, error)
 	VerifyAdmin(checkAddress string) (bool)
-	GetAdminSettings() ([]AdminConfigs, error)
-	UpdateAdminSettings(req UpdateAdminReq) ([]AdminConfigs, error)
+	GetAdminSettings() (AdminConfigs, error)
+	UpdateAdminSettings(req UpdateAdminReq) (AdminConfigs, error)
 }
 
 type userRepo struct {
@@ -130,21 +129,16 @@ func (r *userRepo) VerifyAdmin(checkAddress string) (bool) {
 	return err != nil
 }
 
-func (r *userRepo) GetAdminSettings() ([]AdminConfigs, error) {
-	var adminConfigs []AdminConfigs
+func (r *userRepo) GetAdminSettings() (AdminConfigs, error) {
+	var adminConfigs AdminConfigs
 	err := r.db.Find(&adminConfigs).Error
 	return adminConfigs, err
 }
 
-func (r *userRepo) UpdateAdminSettings(req UpdateAdminReq) ([]AdminConfigs, error) {
-	// TODO: Fix
+func (r *userRepo) UpdateAdminSettings(req UpdateAdminReq) (AdminConfigs, error) {
 	r.db.Where("1=1").Unscoped().Delete(AdminConfigs{})
-	var adminConfigs = []AdminConfigs{}
-	// TODO: Refactor
-	for i := 0; i < len(req.AllowedApps); i++ {
-		adminConfigs = append(adminConfigs, AdminConfigs{HourlyRate: req.HourlyRate, AllowedApp: req.AllowedApps[i]})
-	}
-	dbRes := r.db.Create(&adminConfigs)
+	adminConfig := AdminConfigs{HourlyRate: req.HourlyRate}
+	dbRes := r.db.Create(&adminConfig)
 
-	return adminConfigs, dbRes.Error
+	return adminConfig, dbRes.Error
 }
