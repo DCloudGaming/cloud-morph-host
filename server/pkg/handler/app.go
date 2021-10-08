@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/DCloudGaming/cloud-morph-host/pkg/env"
 	"github.com/DCloudGaming/cloud-morph-host/pkg/errors"
+	"github.com/DCloudGaming/cloud-morph-host/pkg/jwt"
 	"github.com/DCloudGaming/cloud-morph-host/pkg/model"
 	"github.com/DCloudGaming/cloud-morph-host/pkg/perm"
 	"github.com/DCloudGaming/cloud-morph-host/pkg/write"
@@ -27,7 +28,7 @@ func AppHandler(
 		}
 	case http.MethodPost:
 		if head == "registerApp" {
-			registerApp(*sharedEnv, *hostU, *u, w, r)
+			registerApp(*sharedEnv, *u, w, r)
 		} else if head == "startSession" {
 			startSession(*sharedEnv, *u, w, r)
 		} else if head == "updateSession" {
@@ -76,16 +77,19 @@ func getDiscoverApps(sharedEnv env.SharedEnv, u model.User, w http.ResponseWrite
 	write.JSON(resp, w, r)
 }
 
-func registerApp(sharedEnv env.SharedEnv, hostU model.User, u model.User, w http.ResponseWriter, r *http.Request) {
+func registerApp(sharedEnv env.SharedEnv, u model.User, w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	var req model.RegisterAppReq
 	err := decoder.Decode(&req)
+
 	if err != nil || &req == nil {
 		write.Error(errors.NoJSONBody, w, r)
 		return
 	}
 
-	isAllow := perm.RequireOwner(hostU.WalletAddress, req.WalletAddress)
+	hostU2, _ := jwt.DecodeUser(req.Token)
+
+	isAllow := perm.RequireOwner(hostU2.WalletAddress, req.WalletAddress)
 	if !isAllow {
 		write.Error(errors.RouteUnauthorized, w, r)
 		return

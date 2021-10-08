@@ -16,16 +16,13 @@ func ApiHandlerWrapper(
 		u *model.User, hostU *model.User, headPath string)) (f func(w http.ResponseWriter, r *http.Request)) {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		w.Header().Set("Access-Control-Allow-Credentials", "true")
 		// Reply preflight query to avoid CORS blocking
-
+		w.Header().Set("Access-Control-Allow-Credentials", "true")
 		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
 		w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS, POST, DELETE")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type,Content-Length, Authorization, Accept,X-Requested-With,Origin")
-			//w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		if r.Method == http.MethodOptions {
 			json.NewEncoder(w).Encode("OKOK")
-			//return
 		}
 
 		u, _ := jwt.HandleUserCookie(*sharedEnv, w, r)

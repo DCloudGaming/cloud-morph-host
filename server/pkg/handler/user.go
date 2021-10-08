@@ -86,12 +86,6 @@ func getUserFromToken(sharedEnv env.SharedEnv, u model.User, w http.ResponseWrit
 }
 
 func getAdminSettings(sharedEnv env.SharedEnv, u model.User, w http.ResponseWriter, r *http.Request) {
-	isAllow := perm.RequireAdmin(sharedEnv, u.WalletAddress)
-	if !isAllow {
-		write.Error(errors.RouteUnauthorized, w, r)
-		return
-	}
-
 	dbAdminConfigs, err := sharedEnv.UserRepo().GetAdminSettings()
 	if err != nil {
 		write.Error(err, w, r)
@@ -124,12 +118,13 @@ func updateAdminSettings(sharedEnv env.SharedEnv, u model.User, w http.ResponseW
 		return
 	}
 
-	dbUser, err := sharedEnv.UserRepo().UpdateAdminSettings(req)
-	if err != nil {
-		write.Error(err, w, r)
+	adminConfigs, _ := sharedEnv.UserRepo().UpdateAdminSettings(req)
+	var allowedAppNames = make([]string, 0)
+	for i := 0; i < len(adminConfigs); i++ {
+		allowedAppNames = append(allowedAppNames, adminConfigs[i].AllowedApp)
 	}
-
-	write.JSON(dbUser, w, r)
+	sharedEnv.AppRepo().RemoveUnallowedAppsFromRegister(allowedAppNames)
+	write.JSON(adminConfigs, w, r)
 }
 
 func getUser(sharedEnv env.SharedEnv, w http.ResponseWriter, r *http.Request) {

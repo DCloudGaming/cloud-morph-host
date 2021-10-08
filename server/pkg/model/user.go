@@ -52,7 +52,7 @@ type UserRepo interface {
 	VerifyOTP(req VerifyOtpReq) (*SmartOtp, error)
 	VerifyAdmin(checkAddress string) (bool)
 	GetAdminSettings() ([]AdminConfigs, error)
-	UpdateAdminSettings(req UpdateAdminReq) (int64, error)
+	UpdateAdminSettings(req UpdateAdminReq) ([]AdminConfigs, error)
 }
 
 type userRepo struct {
@@ -136,9 +136,9 @@ func (r *userRepo) GetAdminSettings() ([]AdminConfigs, error) {
 	return adminConfigs, err
 }
 
-func (r *userRepo) UpdateAdminSettings(req UpdateAdminReq) (int64, error) {
+func (r *userRepo) UpdateAdminSettings(req UpdateAdminReq) ([]AdminConfigs, error) {
 	// TODO: Fix
-	r.db.Where("hourly_rate > -1").Delete(AdminConfigs{})
+	r.db.Where("1=1").Unscoped().Delete(AdminConfigs{})
 	var adminConfigs = []AdminConfigs{}
 	// TODO: Refactor
 	for i := 0; i < len(req.AllowedApps); i++ {
@@ -146,5 +146,5 @@ func (r *userRepo) UpdateAdminSettings(req UpdateAdminReq) (int64, error) {
 	}
 	dbRes := r.db.Create(&adminConfigs)
 
-	return dbRes.RowsAffected, dbRes.Error
+	return adminConfigs, dbRes.Error
 }

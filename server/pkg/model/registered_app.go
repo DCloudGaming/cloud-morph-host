@@ -16,6 +16,7 @@ type AppRepo interface {
 	RegisterBatch(req RegisterAppReq) (int64, error)
 	GetFromHost(walletAddress string) ([]RegisteredApp, error)
 	GetAllRegisteredApps() ([]RegisteredApp, error)
+	RemoveUnallowedAppsFromRegister(allowedApps []string) ()
 }
 
 type appRepo struct {
@@ -28,8 +29,13 @@ func NewAppRepo(db *gorm.DB) AppRepo {
 	}
 }
 
-// TODO: Only register the unregistered apps, and ignore the rest. For now it might fail
+func (r *appRepo) RemoveUnallowedAppsFromRegister(allowedApps []string) () {
+	r.db.Where("app_name NOT IN ?", allowedApps).Unscoped().Delete(&RegisteredApp{})
+}
+
 func (r *appRepo) RegisterBatch(req RegisterAppReq) (int64, error) {
+	r.db.Where("wallet_address = ?", req.WalletAddress).Unscoped().Delete(&RegisteredApp{})
+
 	var apps = []RegisteredApp{}
 	// TODO: Refactor
 	for i := 0; i < len(req.AppPaths); i++ {

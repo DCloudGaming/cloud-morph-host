@@ -1,5 +1,4 @@
 drop table users;
--- drop table host_configs;
 drop table whitelisted_admins;
 drop table admin_configs;
 drop table registered_apps;
@@ -40,17 +39,6 @@ CREATE TABLE IF NOT EXISTS admin_configs (
     updated_at TIMESTAMP,
     deleted_at TIMESTAMP
 );
-
--- CREATE TABLE IF NOT EXISTS host_configs (
---     id INTEGER,
---     wallet_address TEXT PRIMARY KEY,
---     max_connections INTEGER,
---     cur_unreleased_balance INTEGER,
---     hourly_rate INTEGER,
---     created_at TIMESTAMP,
---     updated_at TIMESTAMP,
---     deleted_at TIMESTAMP
--- );
 
 CREATE TABLE IF NOT EXISTS registered_apps (
     id INTEGER,

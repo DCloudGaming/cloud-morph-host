@@ -35,6 +35,7 @@ type VerifyOtpReq struct {
 
 type RegisterAppReq struct {
 	WalletAddress string `json:"wallet_address"`
+	Token string `json:"token"`
 	AppPaths []string `json:"app_paths"`
 	AppNames []string `json:"app_names"`
 }
