@@ -20,16 +20,16 @@ func Error(err error, w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(code)
 	w.Header().Set("Content-Type", "application/json")
-	w.Header().Add("Access-Control-Allow-Origin", "*")
-	w.Header().Add("Access-Control-Allow-Methods", "DELETE, POST, GET, OPTIONS")
-	w.Header().Add("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With")
+	//w.Header().Add("Access-Control-Allow-Origin", "http://localhost:3000")
+	//w.Header().Add("Access-Control-Allow-Methods", "DELETE, POST, GET, OPTIONS")
+	//w.Header().Add("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With")
 	json.NewEncoder(w).Encode(&errorResponse{Error: err.Error()})
 }
 
 func JSON(obj interface{}, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	w.Header().Add("Access-Control-Allow-Origin", "*")
-	w.Header().Add("Access-Control-Allow-Methods", "DELETE, POST, GET, OPTIONS")
-	w.Header().Add("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With")
+	//w.Header().Add("Access-Control-Allow-Origin", "http://localhost:3000")
+	//w.Header().Add("Access-Control-Allow-Methods", "DELETE, POST, GET, OPTIONS")
+	//w.Header().Add("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With")
 	json.NewEncoder(w).Encode(obj)
 }

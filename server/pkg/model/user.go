@@ -11,7 +11,26 @@ type User struct {
 	ID string
 	WalletAddress string `gorm:"primaryKey"`
 	Nonce string `json:"nonce"`
+	Machine string `json:"machine"`
+	Location string `json:"location"`
+	Name string `json:"name"`
 	Status  Status
+}
+
+type SmartOtp struct {
+	gorm.Model
+	WalletAddress string `gorm:"primaryKey"`
+	Otp string `json:"otp"`
+}
+
+type WhitelistedAdmins struct {
+	gorm.Model
+	WalletAddress string `gorm:"primaryKey"`
+}
+
+type AdminConfigs struct {
+	gorm.Model
+	HourlyRate int `json:"hourly_rate"`
 }
 
 type Status int
@@ -27,6 +46,12 @@ type UserRepo interface {
 	SignUp(walletAddress string) (*User, error)
 	Auth(walletAddress string, signature string) (*User, error)
 	GetUser(walletAddress string) (*User, error)
+	UpdateUser(req UpdateUserReq) (*User, error)
+	GenOTP(walletAddress string) (*SmartOtp, error)
+	VerifyOTP(req VerifyOtpReq) (*SmartOtp, error)
+	VerifyAdmin(checkAddress string) (bool)
+	GetAdminSettings() (AdminConfigs, error)
+	UpdateAdminSettings(req UpdateAdminReq) (AdminConfigs, error)
 }
 
 type userRepo struct {
@@ -69,6 +94,51 @@ func (r *userRepo) Auth(walletAddress string, signature string) (*User, error) {
 
 func (r *userRepo) GetUser(walletAddress string) (*User, error) {
 	var user User
-	r.db.First(&user, "wallet_address = ?", walletAddress)
+	err := r.db.First(&user, "wallet_address = ?", walletAddress).Error
+	return &user, err
+}
+
+func (r *userRepo) UpdateUser(req UpdateUserReq) (*User, error) {
+	var user User
+	r.db.First(&user, "wallet_address = ?", req.WalletAddress)
+	user.Machine = req.Machine
+	user.Location = req.Location
+	user.Name = req.Name
+	r.db.Save(&user)
 	return &user, nil
+}
+
+func (r *userRepo) GenOTP(walletAddress string) (*SmartOtp, error) {
+	otp := SmartOtp{WalletAddress: walletAddress, Otp: utils.GenerateRandomString(10)}
+	r.db.Create(&otp)
+	return &otp, nil
+}
+
+func (r *userRepo) VerifyOTP(req VerifyOtpReq) (*SmartOtp, error) {
+	var smartOtp SmartOtp
+	r.db.First(&smartOtp, "otp = ?", req.Otp)
+	if &smartOtp != nil && smartOtp.Otp != req.Otp {
+		return &smartOtp, nil
+	}
+	return &smartOtp, nil
+}
+
+func (r *userRepo) VerifyAdmin(checkAddress string) (bool) {
+	var admin WhitelistedAdmins
+	err := r.db.First(&admin, "wallet_address = ?", checkAddress)
+	return err != nil
+}
+
+func (r *userRepo) GetAdminSettings() (AdminConfigs, error) {
+	var adminConfigs AdminConfigs
+	err := r.db.Find(&adminConfigs).Error
+	return adminConfigs, err
+}
+
+func (r *userRepo) UpdateAdminSettings(req UpdateAdminReq) (AdminConfigs, error) {
+	r.db.Where("1=1").Unscoped().Delete(AdminConfigs{})
+	adminConfig := AdminConfigs{HourlyRate: req.HourlyRate}
+	dbRes := r.db.Create(&adminConfig)
+
+	return adminConfig, dbRes.Error
 }

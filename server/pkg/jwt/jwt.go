@@ -1,6 +1,7 @@
 package jwt
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -52,11 +53,14 @@ func RequireAuth(minStatus model.Status, e env.SharedEnv, w http.ResponseWriter,
 
 // WriteUserCookie encodes a user's JWT and sets it as an httpOnly & Secure cookie
 func WriteUserCookie(w http.ResponseWriter, u *model.User) {
+	fmt.Println("Set cookie")
+	fmt.Println(u)
+	fmt.Println(EncodeUser(u))
 	http.SetCookie(w, &http.Cookie{
 		Name:     cookieName,
-		Value:    encodeUser(u),
+		Value:    EncodeUser(u),
 		Path:     "/",
-		HttpOnly: true,
+		//HttpOnly: false,
 		//Secure:   true,
 	})
 }
@@ -92,11 +96,11 @@ func userFromCookie(r *http.Request) (*model.User, error) {
 		return &model.User{}, nil
 	}
 
-	return decodeUser(tokenString)
+	return DecodeUser(tokenString)
 }
 
-// encodeUser convert a user struct into a jwt
-func encodeUser(u *model.User) (tokenString string) {
+// EncodeUser convert a user struct into a jwt
+func EncodeUser(u *model.User) (tokenString string) {
 	claims := claims{
 		u,
 		jwt.StandardClaims{
@@ -115,8 +119,8 @@ func encodeUser(u *model.User) (tokenString string) {
 	return
 }
 
-// decodeUser converts a jwt into a user struct (or returns a zero-value user)
-func decodeUser(tokenString string) (*model.User, error) {
+// DecodeUser converts a jwt into a user struct (or returns a zero-value user)
+func DecodeUser(tokenString string) (*model.User, error) {
 	token, err := jwt.ParseWithClaims(tokenString, &claims{}, func(token *jwt.Token) (interface{}, error) {
 		return hmacSecret, nil
 	})

@@ -4,6 +4,22 @@ type SignUpReq struct {
 	WalletAddress string `json:"wallet_address"`
 }
 
+type GetOrCreateUserReq struct {
+	WalletAddress string `json:"wallet_address"`
+}
+
+type UpdateUserReq struct {
+	WalletAddress string `json:"wallet_address"`
+	Machine string `json:"machine"`
+	Location string `json:"location"`
+	Name string `json:"name"`
+}
+
+type UpdateAdminReq struct {
+	HourlyRate int `json:"hourly_rate"`
+	AllowedApps []string `json:"allowed_apps"`
+}
+
 type AuthReq struct {
 	WalletAddress string `json:"wallet_address"`
 	Signature string `json:"signature"`
@@ -13,10 +29,19 @@ type MockAuthReq struct {
 	WalletAddress string `json:"wallet_address"`
 }
 
+type VerifyOtpReq struct {
+	Otp string `json:"otp"`
+}
+
 type RegisterAppReq struct {
 	WalletAddress string `json:"wallet_address"`
+	Token string `json:"token"`
 	AppPaths []string `json:"app_paths"`
 	AppNames []string `json:"app_names"`
+}
+
+type VoteAppReq struct {
+	AppName string `json:"app_name"`
 }
 
 type StartSessionReq struct {
@@ -31,4 +56,8 @@ type UpdateSessionReq struct {
 	TotalDuration int64 `json:"total_duration"`
 	AccumCharge int64 `json:"accum_charge"`
 	StreamStatus int `json:"stream_status"`
+}
+
+type HostJwtToken struct {
+	Token string `json:"token"`
 }

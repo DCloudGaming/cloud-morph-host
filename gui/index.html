@@ -29,7 +29,7 @@
           <button class="button" id="registerButton">Register</button>
         </div>
         <div class="row space-between">
-          <button id="addnew" onclick="addAppRow(0)">New app</button>
+          <button id="addnew">New app</button>
           <button
             class="button-highlight"
             id="saveButton"
@@ -44,9 +44,10 @@
     <div id="connectWalletModal" class="modal">
       <div class="modal-content">
         <span id="connectWalletClose" class="close">&times;</span>
-        <label>Wallet Address</label>
+        <label>Wallet OTP</label>
         <br /><br />
-        <input type="text" id="walletAddress" name="walletAddress" />
+        <input type="text" id="walletOTP" name="walletOTP" />
+        <button id="connectWalletButton">Verify</button>
       </div>
     </div>
     <!-- -->
@@ -54,8 +55,11 @@
       <div class="wave -one"></div>
       <div class="wave -two"></div>
       <div class="wave -three"></div>
+      <div class="boxed">
+        <text id="walletAddressValue">Wallet Address</text>
+      </div>
       <button id="addAppButton">Add app</button>
-      <button id="connectWalletButton">Connect wallet</button>
+      <button id="connectWalletButtonParent">Submit OTP</button>
       <div id="controller">
         <div class="row flex-end">
           <p>Streaming <b>Free Fire</b></p>

@@ -9,7 +9,7 @@ import (
 	"log"
 	"net/http"
 	"time"
-
+	//"github.com/rs/cors"
 	"github.com/DCloudGaming/cloud-morph-host/pkg/common/config"
 	"github.com/DCloudGaming/cloud-morph-host/pkg/common/cws"
 	"github.com/DCloudGaming/cloud-morph-host/pkg/env"
@@ -45,8 +45,8 @@ func NewServer(cfg config.Config) *Server {
 }
 
 func (s *Server) initializeHttpApiRoutes(r *mux.Router) {
-	r.PathPrefix("/api/users").Handler(http.HandlerFunc(handler.ApiHandlerWrapper(&s.shared_env, handler.UserHandler)))
-	r.PathPrefix("/api/apps").Handler(http.HandlerFunc(handler.ApiHandlerWrapper(&s.shared_env, handler.AppHandler)))
+	r.PathPrefix("/api/users").Handler(http.HandlerFunc(handler.ApiHandlerWrapper(&s.shared_env, handler.UserHandler))).Methods("GET", "POST", "OPTIONS", "PUT", "DELETE")
+	r.PathPrefix("/api/apps").Handler(http.HandlerFunc(handler.ApiHandlerWrapper(&s.shared_env, handler.AppHandler))).Methods("GET", "POST", "OPTIONS", "PUT", "DELETE")
 }
 
 func NewServerWithHTTPServerMux(cfg config.Config, r *mux.Router, svmux *http.ServeMux) *Server {
