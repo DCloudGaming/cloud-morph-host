@@ -78,7 +78,7 @@ func (r *appRepo) RemoveUnallowedAppsFromRegister(allowedApps []string) () {
 }
 
 func (r *appRepo) AllowNewApps(appNames []string) () {
-	r.db.Where("app_name NOT IN ?", appNames).Unscoped().Delete(&AllowedApp{})
+	r.db.Where("1=1").Unscoped().Delete(&AllowedApp{})
 	var allowApps = []AllowedApp{}
 	for i := 0; i < len(appNames); i ++ {
 		allowApps = append(allowApps, AllowedApp{AppName: appNames[i]})
