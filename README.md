@@ -1,6 +1,6 @@
 # cloud-morph-host
 
-Windows client app for host on cloud-morph.
+Windows client app for host on cloud-morph..
 
 ## Design
 
