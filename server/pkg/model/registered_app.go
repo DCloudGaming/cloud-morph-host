@@ -70,7 +70,7 @@ func (r *appRepo) GetFromHost(walletAddress string) ([]RegisteredApp, error) {
 
 func (r *appRepo) GetAppByName(appName string, walletAddress string) (RegisteredApp, error) {
 	var registeredApp RegisteredApp
-	dbRes := r.db.First(&registeredApp, "wallet_address = ?", walletAddress)
+	dbRes := r.db.First(&registeredApp, "wallet_address = ? and app_name = ?", walletAddress, appName)
 	return registeredApp, dbRes.Error
 }
 
