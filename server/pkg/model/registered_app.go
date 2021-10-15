@@ -28,6 +28,7 @@ type AppVote struct {
 type AppRepo interface {
 	RegisterBatch(req RegisterAppReq) (int64, error)
 	GetFromHost(walletAddress string) ([]RegisteredApp, error)
+	GetAppByName(appName string, walletAddress string) (RegisteredApp, error)
 	GetAllRegisteredApps() ([]RegisteredApp, error)
 	RemoveUnallowedAppsFromRegister(allowedApps []string) ()
 	AllowNewApps(appNames []string) ()
@@ -65,6 +66,12 @@ func (r *appRepo) GetFromHost(walletAddress string) ([]RegisteredApp, error) {
 	var apps []RegisteredApp
 	dbRes := r.db.Find(&apps, "wallet_address = ?", walletAddress)
 	return apps, dbRes.Error
+}
+
+func (r *appRepo) GetAppByName(appName string, walletAddress string) (RegisteredApp, error) {
+	var registeredApp RegisteredApp
+	dbRes := r.db.First(&registeredApp, "wallet_address = ?", walletAddress)
+	return registeredApp, dbRes.Error
 }
 
 func (r *appRepo) GetAllRegisteredApps() ([]RegisteredApp, error) {

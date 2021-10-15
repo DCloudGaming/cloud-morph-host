@@ -31,6 +31,7 @@ type Server struct {
 	httpServer *http.Server
 	wsClients  map[string]*cws.Client
 	capp       *Service
+	token      string
 }
 
 type StreamerHttp struct {
@@ -44,61 +45,12 @@ type appPacket struct {
 
 func (params *StreamerHttp) registerAppApi(w http.ResponseWriter, req *http.Request) {
 	fmt.Println("received register package")
+
 	var appBody []appPacket
 	json.NewDecoder(req.Body).Decode(&appBody)
 
 	// TODO: Create .bat file contents here
 	sendRegisterApp(params.server, appBody)
-}
-
-func NewServer(cfg config.Config) *Server {
-	return NewServerWithHTTPServerMux(cfg)
-}
-
-func NewServerWithHTTPServerMux(cfg config.Config) *Server {
-	//r := mux.NewRouter()
-	//svmux := &http.ServeMux{}
-	//svmux.Handle("/", r)
-	//
-	//httpServer := &http.Server{
-	//	Addr: addr,
-	//	ReadTimeout: 5 * time.Second,
-	//	WriteTimeout: 5 * time.Second,
-	//	IdleTimeout: 120 * time.Second,
-	//	Handler: svmux,
-	//}
-	server := &Server{
-		capp: NewCloudService(cfg),
-		//httpServer: httpServer,
-	}
-
-	params := &StreamerHttp{server: server}
-	http.HandleFunc("/registerApp", params.registerAppApi)
-	//.Host("http://localhost:8081").Methods("GET").Schemes("http")
-
-	go http.ListenAndServe(":8082", nil)
-
-	return server
-}
-
-func (o *Server) Handle() {
-	// Spawn CloudGaming Handle
-	go o.capp.Handle()
-}
-
-func (s *Server) initClientData(client *cws.Client) {
-	data := initData{
-		CurAppID: s.appID,
-	}
-	jsonData, err := json.Marshal(data)
-	if err != nil {
-		return
-	}
-	fmt.Println("Send Client INIT")
-	client.Send(cws.WSPacket{
-		Type: "INIT",
-		Data: string(jsonData),
-	}, nil)
 }
 
 func sendRegisterApp(s *Server, appBody []appPacket) {
@@ -124,6 +76,85 @@ func sendRegisterApp(s *Server, appBody []appPacket) {
 			Data: string(registerJsonData),
 		}, nil)
 	}
+}
+
+type tokenPacket struct {
+	Token string `json:"token"`
+}
+
+func (params *StreamerHttp) updateTokenApi(w http.ResponseWriter, req *http.Request) {
+	fmt.Println("received register package")
+
+	var tokenBody tokenPacket
+	json.NewDecoder(req.Body).Decode(&tokenBody)
+
+	updateToken(params.server, tokenBody)
+}
+
+func updateToken(s *Server, tokenBody tokenPacket) {
+	for _, serviceClient := range s.capp.clients {
+
+		updateTokenData, err := json.Marshal(tokenBody)
+		if err != nil {
+			return
+		}
+
+		serviceClient.ws.Send(cws.WSPacket{
+			Type: "updateToken",
+			Data: string(updateTokenData),
+		}, nil)
+	}
+}
+
+func NewServer(cfg config.Config) *Server {
+	return NewServerWithHTTPServerMux(cfg)
+}
+
+func NewServerWithHTTPServerMux(cfg config.Config) *Server {
+	//r := mux.NewRouter()
+	//svmux := &http.ServeMux{}
+	//svmux.Handle("/", r)
+	//
+	//httpServer := &http.Server{
+	//	Addr: addr,
+	//	ReadTimeout: 5 * time.Second,
+	//	WriteTimeout: 5 * time.Second,
+	//	IdleTimeout: 120 * time.Second,
+	//	Handler: svmux,
+	//}
+	server := &Server{
+		capp: NewCloudService(cfg),
+		//httpServer: httpServer,
+	}
+
+	params := &StreamerHttp{server: server}
+	http.HandleFunc("/registerApp", params.registerAppApi)
+	http.HandleFunc("/updateToken", params.updateTokenApi)
+	//.Host("http://localhost:8081").Methods("GET").Schemes("http")
+
+	go http.ListenAndServe(":8082", nil)
+
+	return server
+}
+
+func (o *Server) Handle() {
+	// Spawn CloudGaming Handle
+	go o.capp.Handle()
+}
+
+func (s *Server) initClientData(client *cws.Client) {
+	data := initData{
+		CurAppID: s.appID,
+	}
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		return
+	}
+	fmt.Println("Send Client INIT")
+	client.Send(cws.WSPacket{
+		Type: "INIT",
+		Data: string(jsonData),
+	}, nil)
 }
 
 func (s *Server) NotifySignallingServer() {
