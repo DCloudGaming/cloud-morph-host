@@ -55,7 +55,8 @@ npm start
 - (First run) Setup Metamask extension
 - (First run) Install sqlite3 from homebrew
 - (First run) Initialize db
-  - sqlite3
+  - cd server
+  - sqlite3 test.db
   - Copy paste commands from `cloud-morph-host/server/init_db/init_db.sql`
   - Check for errors
 - Connect wallet
