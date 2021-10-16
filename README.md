@@ -53,6 +53,11 @@ npm start
 ### 5. Run full flow
 
 - (First run) Setup Metamask extension
+- (First run) Install sqlite3 from homebrew
+- (First run) Initialize db
+  - sqlite3
+  - Copy paste commands from `cloud-morph-host/server/init_db/init_db.sql`
+  - Check for errors
 - Connect wallet
   - Click on Connect Wallet on React app
   - Connect and sign in Metamask pop-up
