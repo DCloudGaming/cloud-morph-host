@@ -183,6 +183,7 @@ func (c *ccImpl) runApp(params []string) {
 	// Launch application using exec
 	var cmd *exec.Cmd
 	//params = append([]string{"/C", "run-app.bat"}, params...)
+	// params[0] = "/Users/hieuletrung/Documents/repos/side_projects/temp-docker"
 	if c.osType == Windows {
 		params = append([]string{"-ExecutionPolicy", "Bypass", "-F", "run-app.ps1"}, params...)
 		log.Println("You are running on Windows", params)
@@ -194,8 +195,12 @@ func (c *ccImpl) runApp(params []string) {
 
 	cmd.Env = os.Environ()
 	stdout, err := cmd.StdoutPipe()
+	stderr, err2 := cmd.StderrPipe()
 	if err != nil {
 		log.Fatal(err)
+	}
+	if err2 != nil {
+		log.Fatal(err2)
 	}
 	cmd.Start()
 	go func() {
@@ -205,6 +210,18 @@ func (c *ccImpl) runApp(params []string) {
 			if string(line) == "" {
 				continue
 			}
+			log.Println("info log")
+			log.Println(string(line))
+		}
+	}()
+	go func() {
+		buf := bufio.NewReader(stderr) // Notice that this is not in a loop
+		for {
+			line, _, _ := buf.ReadLine()
+			if string(line) == "" {
+				continue
+			}
+			log.Println("err log")
 			log.Println(string(line))
 		}
 	}()

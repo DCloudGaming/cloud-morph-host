@@ -97,6 +97,18 @@ ipcMain.on("connectWallet", async function(event, arg) {
     withCredentials: true
   })
 
+  await axios({
+    method: "POST",
+    url: "http://localhost:8082/updateToken",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    data: {
+      token: response.data.token
+    },
+    withCredentials: true
+  })
+
   console.log(response.data);
   event.returnValue = {
     WalletAddress: response.data.wallet_address,

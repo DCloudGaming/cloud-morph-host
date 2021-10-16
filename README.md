@@ -28,14 +28,21 @@ cd server
 go run main.go
 ```
 
-### 2. Run GUI, install Electron
+### 2. Run streamer
+
+```
+cd streamer
+go run main.go
+```
+
+### 3. Run GUI, install Electron
 
 ```
 cd gui
 npm start
 ```
 
-### 3. Run webapp
+### 4. Run webapp
 
 ```
 cd dcloud-webapp
@@ -43,12 +50,46 @@ npm install
 npm start
 ```
 
-### 4. Open App on browser
+### 5. Run full flow
 
-1. Open `http://localhost:8080/play`
-2. Click `Register` Button in GUI
-3. Click Notepad entry
-
-## FAQ
-
-If cannot run, there maybe some duplicate process running. We can fix but in the mean time, we can restart everything
+- (First run) Setup Metamask extension
+- (First run) Install sqlite3 from homebrew
+- (First run) Initialize db
+  - cd server
+  - sqlite3 test.db
+  - Copy paste commands from `cloud-morph-host/server/init_db/init_db.sql`
+  - Check for errors
+- Connect wallet
+  - Click on Connect Wallet on React app
+  - Connect and sign in Metamask pop-up
+- Authorize Electron app
+  - Get OTP on React app
+  - Paste it to Electron app
+  - Quick DB check
+    - sqlite3
+    - select \* from smart_otps;
+    - We should see rows having both OTP and wallet addresses.
+- (First run) Whitelist wallet address
+  - sqlite3
+  - INSERT INTO whitelisted_admins (id, wallet_address) VALUES (1, 'metamask-wallet-address');
+- (First run) Register new app
+  - Click Admin Update on React app navbar
+  - Add some random app names
+  - Save
+- (First run) Register new app paths
+  - Click Add app on Electron app
+  - Pick a recently added app name
+  - Choose the app
+  - Save
+- Start streaming
+  - Go to http://localhost:3000/streams
+  - Should see some cards
+  - Click Start playing on one card
+  - Should be directed to http://localhost:3000/play
+  - Monitoring:
+    - Console of React app: init/ice candidate/error logs
+    - chrome://webrtc-internals/
+- Notes
+  - To restart the flow, sign out Metamask by
+    - Click on Metamask extension icon
+    - Click on Lock

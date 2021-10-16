@@ -2,6 +2,8 @@ package cloudapp
 
 import (
 	"encoding/json"
+	"fmt"
+	"github.com/DCloudGaming/cloud-morph-host/pkg/jwt"
 	"log"
 
 	"github.com/DCloudGaming/cloud-morph-host/pkg/common/config"
@@ -27,12 +29,12 @@ type Service struct {
 
 type Client struct {
 	clientID string
+	walletAddress string
 	ws       *cws.Client
 	// cancel to trigger cleaning up when client is disconnected
 	cancel chan struct{}
 	// done to notify if the client is done clean up
 	done chan struct{}
-	walletAddress string
 }
 
 type Host struct {
@@ -99,27 +101,8 @@ func NewServiceHost(hostID string, ws *cws.Client) *Host {
 	}
 }
 
-//func addForwardingRoute(sender *cws.Client, senderID string, receiver *cws.Client, receiverID string, messages []string, s *Server, is_sender_browser bool) {
 func addForwardingRoute(c *Client, h *Host, messages []string, s *Server, is_sender_browser bool) {
 	for _, message := range messages {
-		//sender.Receive(
-		//	message,
-		//	func(req cws.WSPacket) cws.WSPacket {
-		//
-		//		if (is_sender_browser) {
-		//			if (s.capp.clientChosenApp[senderID].hostID != receiverID) {
-		//				return cws.EmptyPacket
-		//			}
-		//		} else {
-		//			if (s.capp.clientChosenApp[receiverID].hostID != senderID) {
-		//				return cws.EmptyPacket
-		//			}
-		//		}
-		//
-		//		resp := receiver.SyncSend(req)
-		//		return resp
-		//	},
-		//)
 		var sender_ws *cws.Client
 		var rec_ws *cws.Client
 		if is_sender_browser {
@@ -204,9 +187,60 @@ func (h *Host) HostRoute(s *Server) {
 			return cws.EmptyPacket
 		},
 	)
+
+	h.ws.Receive(
+		"updateToken",
+		func(req cws.WSPacket) (resp cws.WSPacket) {
+			var updateTokenData struct {
+				Token string `json:"token"`
+			}
+			err := json.Unmarshal([]byte(req.Data), &updateTokenData)
+			if err != nil {
+				log.Println("Error: Cannot decode json:", err)
+				return cws.EmptyPacket
+			}
+
+			user, _ := jwt.DecodeUser(updateTokenData.Token)
+			h.walletAddress = user.WalletAddress
+			fmt.Println("Set wallet address for host ws " + h.walletAddress)
+			return cws.EmptyPacket
+		},
+	)
 }
 
 func (c *Client) ClientRoute(s *Server) {
+	c.ws.Receive("startSession",
+		func(req cws.WSPacket) (resp cws.WSPacket) {
+			var startSessionData struct {
+				AppName string `json:"app_name"`
+				HostWalletAddress string `json:"host_wallet_address"`
+			}
+			err := json.Unmarshal([]byte(req.Data), &startSessionData)
+			if err != nil {
+				log.Println("Error: Cannot decode json:", err)
+				return cws.EmptyPacket
+			}
+
+			for _, h := range s.capp.hosts {
+				if (h.walletAddress == startSessionData.HostWalletAddress) {
+					addForwardingRoute(c, h, []string{"initwebrtc", "answer", "candidate"}, s, true)
+					addForwardingRoute(c, h, []string{"init", "INIT", "candidate", "offer"}, s, false)
+
+					registeredApp, _ := s.shared_env.AppRepo().GetAppByName(startSessionData.AppName, h.walletAddress)
+
+					h.ws.Send(cws.WSPacket{
+						Type: "init",
+						Data: registeredApp.AppPath,
+					}, nil)
+					break
+				}
+			}
+
+			return cws.EmptyPacket
+		},
+	)
+
+	// TODO: Add forwarding mapping to an api handler
 	c.ws.Receive(
 		"registerBrowserHost",
 		func(req cws.WSPacket) (resp cws.WSPacket) {
