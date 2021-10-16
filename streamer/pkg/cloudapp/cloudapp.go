@@ -183,7 +183,7 @@ func (c *ccImpl) runApp(params []string) {
 	// Launch application using exec
 	var cmd *exec.Cmd
 	//params = append([]string{"/C", "run-app.bat"}, params...)
-	params[0] = "/Users/hieuletrung/Documents/repos/side_projects/temp-docker"
+	// params[0] = "/Users/hieuletrung/Documents/repos/side_projects/temp-docker"
 	if c.osType == Windows {
 		params = append([]string{"-ExecutionPolicy", "Bypass", "-F", "run-app.ps1"}, params...)
 		log.Println("You are running on Windows", params)
