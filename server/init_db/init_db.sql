@@ -7,8 +7,6 @@ drop table registered_apps;
 drop table stream_sessions;
 drop table smart_otps;
 
--- Please note INTEGER is LONG too in SQLite
-
 CREATE TABLE IF NOT EXISTS users (
     id INTEGER,
     wallet_address TEXT PRIMARY KEY,
@@ -25,7 +23,6 @@ CREATE TABLE IF NOT EXISTS users (
     deleted_at TIMESTAMP
 );
 
--- separate out so easier to insert new admin, rather than within `users` table
 CREATE TABLE IF NOT EXISTS whitelisted_admins (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     wallet_address TEXT PRIMARY KEY,
@@ -71,7 +68,6 @@ CREATE TABLE IF NOT EXISTS registered_apps (
     PRIMARY KEY (wallet_address, app_name)
 );
 
--- TODO: Change id to uuid
 CREATE TABLE IF NOT EXISTS stream_sessions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     stream_status INTEGER,
