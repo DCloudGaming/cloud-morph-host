@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 CREATE TABLE IF NOT EXISTS whitelisted_admins (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id INTEGER,
     wallet_address TEXT PRIMARY KEY,
     created_at TIMESTAMP,
     updated_at TIMESTAMP,
