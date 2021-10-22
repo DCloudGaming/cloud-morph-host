@@ -343,12 +343,15 @@ int main(int argc, char *argv[])
     bool isDxGame = false;
     isMac = false;
     isWindows = false;
+    cout << "args" << endl;
     if (argc > 1)
     {
+        cout << argv[1] << endl;
         winTitle = string(argv[1]);
     }
     if (argc > 2)
     {
+        cout << argv[2] << endl;
         if (strcmp(argv[2], "game") == 0)
         {
             isDxGame = true;
@@ -356,6 +359,7 @@ int main(int argc, char *argv[])
     }
     if (argc > 3)
     {
+        cout << argv[3] << endl;
         if (strcmp(argv[3], "host.docker.internal") == 0)
         {
             isMac = true;
