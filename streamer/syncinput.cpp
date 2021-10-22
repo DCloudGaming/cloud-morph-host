@@ -356,7 +356,7 @@ int main(int argc, char *argv[])
     }
     if (argc > 3)
     {
-        if (strcmp(argv[3], "mac") == 0)
+        if (strcmp(argv[3], "host.docker.internal") == 0)
         {
             isMac = true;
             cout << "Running syncinput on Mac";
