@@ -222,15 +222,21 @@ func (c *Client) ClientRoute(s *Server) {
 			}
 
 			for _, h := range s.capp.hosts {
-				if (h.walletAddress == startSessionData.HostWalletAddress) {
+				if (h.walletAddress == startSessionData.HostWalletAddress || s.shared_env.Mode() == "DEBUG") {
 					addForwardingRoute(c, h, []string{"initwebrtc", "answer", "candidate"}, s, true)
 					addForwardingRoute(c, h, []string{"init", "INIT", "candidate", "offer"}, s, false)
 
-					registeredApp, _ := s.shared_env.AppRepo().GetAppByName(startSessionData.AppName, h.walletAddress)
+					var appPath string
+					if (s.shared_env.Mode() == "DEBUG") {
+						appPath = s.shared_env.DefaultAppPath()
+					} else {
+						registeredApp, _ := s.shared_env.AppRepo().GetAppByName(startSessionData.AppName, h.walletAddress)
+						appPath = registeredApp.AppPath
+					}
 
 					h.ws.Send(cws.WSPacket{
 						Type: "init",
-						Data: registeredApp.AppPath,
+						Data: appPath,
 					}, nil)
 					break
 				}

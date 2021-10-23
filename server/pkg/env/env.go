@@ -12,6 +12,8 @@ type sharedEnv struct {
 	appRepo model.AppRepo
 	hostConfigRepo model.HostConfigRepo
 	streamSessionRepo model.SessionRepo
+	mode string // DEBUG or PROD
+	defaultAppPath string
 }
 
 type SharedEnv interface {
@@ -19,6 +21,8 @@ type SharedEnv interface {
 	AppRepo() model.AppRepo
 	HostConfigRepo() model.HostConfigRepo
 	StreamSessionRepo() model.SessionRepo
+	Mode() string
+	DefaultAppPath() string
 }
 
 func New() (SharedEnv, error) {
@@ -33,6 +37,8 @@ func New() (SharedEnv, error) {
 		appRepo: model.NewAppRepo(db),
 		hostConfigRepo: model.NewHostConfigRepo(db),
 		streamSessionRepo: model.NewSessionRepo(db),
+		mode: "DEBUG",
+		defaultAppPath: "/Users/hieuletrung/Documents/repos/side_projects/cloud-morph-host/streamer/apps/Minesweeper.exe",
 	}, nil
 }
 
@@ -50,4 +56,12 @@ func (e *sharedEnv) HostConfigRepo() model.HostConfigRepo {
 
 func (e *sharedEnv) StreamSessionRepo() model.SessionRepo {
 	return e.streamSessionRepo
+}
+
+func (e *sharedEnv) Mode() string {
+	return e.mode
+}
+
+func (e *sharedEnv) DefaultAppPath() string {
+	return e.defaultAppPath
 }

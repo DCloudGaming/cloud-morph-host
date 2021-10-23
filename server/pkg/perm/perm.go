@@ -14,11 +14,17 @@ const (
 )
 
 func RequireAuthenticated(sharedEnv env.SharedEnv, w http.ResponseWriter, r *http.Request) (bool) {
+	if (sharedEnv.Mode() == "DEBUG") {
+		return true
+	}
 	_, allowJwt := jwt.RequireAuth(model.StatusUnverified, sharedEnv, w, r)
 	return allowJwt
 }
 
-func RequireOwner(address1 string,address2 string) (bool) {
+func RequireOwner(sharedEnv env.SharedEnv, address1 string,address2 string) (bool) {
+	if (sharedEnv.Mode() == "DEBUG") {
+		return true
+	}
 	if address1 != address2 {
 		return false
 	}
@@ -26,6 +32,9 @@ func RequireOwner(address1 string,address2 string) (bool) {
 }
 
 func RequireAdmin(sharedEnv env.SharedEnv, checkAddress string) (bool) {
+	if (sharedEnv.Mode() == "DEBUG") {
+		return true
+	}
 	isAdmin := sharedEnv.UserRepo().VerifyAdmin(checkAddress)
 	return isAdmin
 }

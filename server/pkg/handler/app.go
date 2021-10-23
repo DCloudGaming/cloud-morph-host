@@ -124,7 +124,7 @@ func registerApp(sharedEnv env.SharedEnv, u model.User, w http.ResponseWriter, r
 
 	hostU2, _ := jwt.DecodeUser(req.Token)
 
-	isAllow := perm.RequireOwner(hostU2.WalletAddress, req.WalletAddress)
+	isAllow := perm.RequireOwner(sharedEnv, hostU2.WalletAddress, req.WalletAddress)
 	if !isAllow {
 		write.Error(errors.RouteUnauthorized, w, r)
 		return
@@ -164,7 +164,7 @@ func startSession(sharedEnv env.SharedEnv, u model.User, w http.ResponseWriter, 
 		return
 	}
 
-	isAllow := perm.RequireOwner(u.WalletAddress, req.ClientWalletAddress) &&
+	isAllow := perm.RequireOwner(sharedEnv, u.WalletAddress, req.ClientWalletAddress) &&
 		perm.RequireAuthenticated(sharedEnv, w, r)
 	if !isAllow {
 		write.Error(errors.RouteUnauthorized, w, r)
@@ -186,7 +186,7 @@ func updateSession(sharedEnv env.SharedEnv, u model.User, w http.ResponseWriter,
 
 	dbSession, _ := sharedEnv.StreamSessionRepo().GetSession(req.SessionID)
 
-	isAllow := perm.RequireOwner(u.WalletAddress, dbSession.ClientWalletAddress) &&
+	isAllow := perm.RequireOwner(sharedEnv, u.WalletAddress, dbSession.ClientWalletAddress) &&
 		perm.RequireAuthenticated(sharedEnv, w, r)
 	if !isAllow {
 		write.Error(errors.RouteUnauthorized, w, r)

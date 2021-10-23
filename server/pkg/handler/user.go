@@ -62,7 +62,7 @@ func getProfile(sharedEnv env.SharedEnv, u model.User, w http.ResponseWriter, r 
 	dbUser, _ := sharedEnv.UserRepo().GetUser(walletAddress)
 
 
-	isAllow := perm.RequireOwner(u.WalletAddress, walletAddress) &&
+	isAllow := perm.RequireOwner(sharedEnv, u.WalletAddress, walletAddress) &&
 		perm.RequireAuthenticated(sharedEnv, w, r)
 	if !isAllow {
 		write.Error(errors.RouteUnauthorized, w, r)
@@ -154,7 +154,7 @@ func updateUser(sharedEnv env.SharedEnv, u model.User, w http.ResponseWriter, r 
 		return
 	}
 
-	isAllow := perm.RequireOwner(u.WalletAddress, req.WalletAddress) &&
+	isAllow := perm.RequireOwner(sharedEnv, u.WalletAddress, req.WalletAddress) &&
 		perm.RequireAuthenticated(sharedEnv, w, r)
 	if !isAllow {
 		write.Error(errors.RouteUnauthorized, w, r)
