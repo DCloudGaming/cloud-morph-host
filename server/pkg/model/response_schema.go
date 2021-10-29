@@ -35,6 +35,9 @@ type DiscoverAppResponse struct {
 type GetAllowAppResponse struct {
 	AppName string `json:"app_name"`
 	VoteCount int `json:"vote_count"`
+	Voted bool `json:"voted"`
+	ImageUrl string `json:"image_url"`
+	Publisher string `json:"publisher"`
 }
 
 type GetAdminConfigsResponse struct {

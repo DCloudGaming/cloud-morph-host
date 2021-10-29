@@ -37,7 +37,8 @@ func New() (SharedEnv, error) {
 		appRepo: model.NewAppRepo(db),
 		hostConfigRepo: model.NewHostConfigRepo(db),
 		streamSessionRepo: model.NewSessionRepo(db),
-		mode: "DEBUG",
+		//mode: "DEBUG",
+		mode: "PROD",
 		defaultAppPath: "/Users/hieuletrung/Documents/repos/side_projects/cloud-morph-host/streamer/apps/Minesweeper.exe",
 	}, nil
 }
