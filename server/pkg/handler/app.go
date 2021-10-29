@@ -92,8 +92,10 @@ func getAllowApps(sharedEnv env.SharedEnv, u model.User, w http.ResponseWriter, 
 	allowApps, _ := sharedEnv.AppRepo().GetAllowedApps()
 	for _, allowApp := range allowApps {
 		voteCount := sharedEnv.AppRepo().GetVote(allowApp.AppName)
+		isVoted := sharedEnv.AppRepo().IsVoted(allowApp.AppName, u.WalletAddress)
 		resp = append(resp, model.GetAllowAppResponse{
-			AppName: allowApp.AppName, VoteCount: voteCount,
+			AppName: allowApp.AppName, VoteCount: voteCount, Publisher: allowApp.Publisher,
+			ImageUrl: allowApp.ImageUrl, Voted: isVoted,
 		})
 	}
 	write.JSON(resp, w, r)

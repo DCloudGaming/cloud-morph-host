@@ -105,6 +105,7 @@ func updateAdminSettings(sharedEnv env.SharedEnv, u model.User, w http.ResponseW
 	err := decoder.Decode(&req)
 	if err != nil || &req == nil {
 		write.Error(errors.NoJSONBody, w, r)
+		return
 	}
 
 	isAllow := perm.RequireAdmin(sharedEnv, u.WalletAddress)

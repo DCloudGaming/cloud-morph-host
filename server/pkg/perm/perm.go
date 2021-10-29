@@ -5,6 +5,7 @@ import (
 	"github.com/DCloudGaming/cloud-morph-host/pkg/jwt"
 	"github.com/DCloudGaming/cloud-morph-host/pkg/model"
 	"net/http"
+	"strings"
 )
 
 const (
@@ -21,11 +22,11 @@ func RequireAuthenticated(sharedEnv env.SharedEnv, w http.ResponseWriter, r *htt
 	return allowJwt
 }
 
-func RequireOwner(sharedEnv env.SharedEnv, address1 string,address2 string) (bool) {
+func RequireOwner(sharedEnv env.SharedEnv, address1 string, address2 string) (bool) {
 	if (sharedEnv.Mode() == "DEBUG") {
 		return true
 	}
-	if address1 != address2 {
+	if strings.ToLower(address1) != strings.ToLower(address2) {
 		return false
 	}
 	return true
@@ -35,6 +36,6 @@ func RequireAdmin(sharedEnv env.SharedEnv, checkAddress string) (bool) {
 	if (sharedEnv.Mode() == "DEBUG") {
 		return true
 	}
-	isAdmin := sharedEnv.UserRepo().VerifyAdmin(checkAddress)
+	isAdmin := sharedEnv.UserRepo().VerifyAdmin(strings.ToLower(checkAddress))
 	return isAdmin
 }
