@@ -10,7 +10,6 @@ import (
 	"github.com/DCloudGaming/cloud-morph-host/pkg/env"
 	"github.com/DCloudGaming/cloud-morph-host/pkg/errors"
 	"github.com/DCloudGaming/cloud-morph-host/pkg/model"
-	"github.com/DCloudGaming/cloud-morph-host/pkg/write"
 	jwt "github.com/dgrijalva/jwt-go"
 )
 
@@ -38,13 +37,11 @@ type claims struct {
 // RequireAuth middleware makes sure the user exists based on their JWT
 func RequireAuth(minStatus model.Status, e env.SharedEnv, w http.ResponseWriter, r *http.Request) (*model.User, bool) {
 	u, err := HandleUserCookie(e, w, r)
-	if err != nil {
-		write.Error(err, w, r)
+	if err != nil || u.WalletAddress == "" {
 		return u, false
 	}
 
 	if u.Status < minStatus {
-		write.Error(errors.RouteUnauthorized, w, r)
 		return u, false
 	}
 
