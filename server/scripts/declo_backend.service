@@ -1,0 +1,10 @@
+[Unit]
+Description= instance to serve api
+After=network.target
+[Service]
+User=root
+Group=www-data
+Environment=GOPATH=/home/repos/cloud-morph-host/server/
+ExecStart=/home/repos/cloud-morph-host/server/cloud-morph-host
+[Install]
+WantedBy=multi-user.target
