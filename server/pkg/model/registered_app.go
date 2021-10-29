@@ -16,6 +16,14 @@ type AllowedApp struct {
 	gorm.Model
 	ID string
 	AppName string `json:"app_name"`
+	Publisher string `json:"publisher"`
+	ImageUrl string `json:"image_url"`
+}
+
+type AllowAppSchema struct {
+	AppName string `json:"app_name"`
+	ImageUrl string `json:"image_url"`
+	Publisher string `json:"publisher"`
 }
 
 type AppVote struct {
@@ -30,13 +38,13 @@ type AppRepo interface {
 	GetFromHost(walletAddress string) ([]RegisteredApp, error)
 	GetAppByName(appName string, walletAddress string) (RegisteredApp, error)
 	GetAllRegisteredApps() ([]RegisteredApp, error)
-	RemoveUnallowedAppsFromRegister(allowedApps []string) ()
-	AllowNewApps(appNames []string) ()
+	RemoveUnallowedAppsFromRegister(apps []AllowAppSchema) ()
+	AllowNewApps(apps []AllowAppSchema) ()
 	DisallowApps(appNames []string) ()
 	GetAllowedApps() ([]AllowedApp, error)
 	UpdateVote(appName string, walletAddress string) ()
 	GetVote(appName string) (int)
-	//GetVotes(appNames []string) ([]int)
+	IsVoted(appName string, walletAddress string) (bool)
 }
 
 type appRepo struct {
@@ -80,15 +88,21 @@ func (r *appRepo) GetAllRegisteredApps() ([]RegisteredApp, error) {
 	return apps, dbRes.Error
 }
 
-func (r *appRepo) RemoveUnallowedAppsFromRegister(allowedApps []string) () {
-	r.db.Where("app_name NOT IN ?", allowedApps).Unscoped().Delete(&RegisteredApp{})
+func (r *appRepo) RemoveUnallowedAppsFromRegister(apps []AllowAppSchema) () {
+	var appNames []string
+	for i := 0; i < len(apps); i ++ {
+		appNames = append(appNames, apps[i].AppName)
+	}
+	r.db.Where("app_name NOT IN ?", appNames).Unscoped().Delete(&RegisteredApp{})
 }
 
-func (r *appRepo) AllowNewApps(appNames []string) () {
+func (r *appRepo) AllowNewApps(apps []AllowAppSchema) () {
 	r.db.Where("1=1").Unscoped().Delete(&AllowedApp{})
 	var allowApps = []AllowedApp{}
-	for i := 0; i < len(appNames); i ++ {
-		allowApps = append(allowApps, AllowedApp{AppName: appNames[i]})
+	for i := 0; i < len(apps); i ++ {
+		allowApps = append(allowApps, AllowedApp{
+			AppName: apps[i].AppName, Publisher: apps[i].Publisher, ImageUrl: apps[i].ImageUrl,
+		})
 	}
 	r.db.Create(&allowApps)
 }
@@ -113,6 +127,12 @@ func (r *appRepo) UpdateVote(appName string, walletAddress string) {
 	}
 }
 
+func (r *appRepo) IsVoted(appName string, walletAddress string) (bool) {
+	var vote AppVote
+	err := r.db.First(&vote, "wallet_address = ? and app_name = ?", walletAddress, appName).Error
+	return err == nil
+}
+
 func (r *appRepo) GetVote(appName string) (int) {
 	type result struct {
 		Num int
@@ -125,5 +145,3 @@ func (r *appRepo) GetVote(appName string) (int) {
 		return 0
 	}
 }
-
-

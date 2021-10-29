@@ -42,6 +42,8 @@ CREATE TABLE IF NOT EXISTS admin_configs (
 CREATE TABLE IF NOT EXISTS allowed_apps (
     id INTEGER,
     app_name TEXT PRIMARY KEY,
+    publisher TEXT,
+    image_url TEXT,
     created_at TIMESTAMP,
     updated_at TIMESTAMP,
     deleted_at TIMESTAMP
@@ -91,4 +93,4 @@ CREATE TABLE IF NOT EXISTS smart_otps (
     deleted_at TIMESTAMP
 );
 
-INSERT INTO whitelisted_admins (id, wallet_address) VALUES (1, '0xbe8978953e7f2b908e92189adbc39ecaeb85560f');
+INSERT INTO whitelisted_admins (id, wallet_address) VALUES (1, '0x3bfe0fcaecdb3ad87c786447f10d57bd0c6cb842');

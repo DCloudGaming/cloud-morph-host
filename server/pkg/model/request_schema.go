@@ -17,7 +17,7 @@ type UpdateUserReq struct {
 
 type UpdateAdminReq struct {
 	HourlyRate int `json:"hourly_rate"`
-	AllowedApps []string `json:"allowed_apps"`
+	AllowedApps []AllowAppSchema `json:"allowed_apps"`
 }
 
 type AuthReq struct {
