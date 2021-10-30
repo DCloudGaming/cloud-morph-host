@@ -12,11 +12,13 @@
 # go build
 
 ## Create service file to deploy
-cp declo_backend.service /etc/systemd/system/declo_backend.service
-cp declo_nginx.com /etc/nginx/sites-enabled/declo.co
+#cp declo_backend.service /etc/systemd/system/declo_backend.service
+#cp declo_nginx.com /etc/nginx/sites-enabled/declo.co
+
+go build
 
 sudo systemctl daemon-reload
 sudo systemctl restart declo_backend
-#sudo systemctl restart nginx
+sudo systemctl restart nginx
 
 #nohup go run main.go &
