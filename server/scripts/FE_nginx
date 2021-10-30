@@ -1,0 +1,32 @@
+server {
+    root /var/www/declo.co/html;
+    index index.html index.htm index.nginx-debian.html;
+
+    server_name declo.co www.declo.co;
+
+    location /glance {
+        return 301 http://$server_name$request_uri;
+    }
+
+    location / {
+        try_files $uri /index.html;
+    }
+
+    listen [::]:443 ssl ipv6only=on; # managed by Certbot
+    listen 443 ssl; # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/declo.co/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/declo.co/privkey.pem; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+}
+
+server {
+    root /var/www/declo.co/html;
+    index index.html index.htm index.nginx-debian.html;
+    server_name declo.co www.declo.co;
+    location /glance {
+            try_files $uri /index.html;
+    }
+    listen 80;
+    listen [::]:80;
+}

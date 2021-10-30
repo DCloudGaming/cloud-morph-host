@@ -26,7 +26,7 @@ type SharedEnv interface {
 }
 
 func New() (SharedEnv, error) {
-	db, err := gorm.Open(sqlite.Open("test.db"), &gorm.Config{})
+	db, err := gorm.Open(sqlite.Open("/home/repos/cloud-morph-host/server/prod.db"), &gorm.Config{})
 	if err != nil {
 		panic("failed to connect database")
 	}

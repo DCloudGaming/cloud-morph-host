@@ -18,3 +18,5 @@ cp declo_nginx.com /etc/nginx/sites-enabled/declo.co
 sudo systemctl daemon-reload
 sudo systemctl restart declo_backend
 #sudo systemctl restart nginx
+
+#nohup go run main.go &

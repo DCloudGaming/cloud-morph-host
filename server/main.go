@@ -12,7 +12,7 @@ import (
 	"github.com/DCloudGaming/cloud-morph-host/pkg/common/config"
 )
 
-const configFilePath = "./config.yaml"
+const configFilePath = "/home/repos/cloud-morph-host/server/config.yaml"
 
 func monitor() {
 	monitoringServerMux := http.NewServeMux()
