@@ -178,20 +178,15 @@ func (c *ccImpl) GetSSRC() uint32 {
 	return c.ssrc
 }
 
-func (c *ccImpl) runApp(params []string) {
+func (c *ccImpl) runApp(execCmd string, params []string) {
 
 	// Launch application using exec
 	var cmd *exec.Cmd
 	//params = append([]string{"/C", "run-app.bat"}, params...)
 	// params[0] = "/Users/hieuletrung/Documents/repos/side_projects/temp-docker"
-	if c.osType == Windows {
-		params = append([]string{"-ExecutionPolicy", "Bypass", "-F", "run-app.ps1"}, params...)
-		log.Println("You are running on Windows", params)
-		cmd = exec.Command("powershell", params...)
-	} else {
-		log.Println("You are running on Linux")
-		cmd = exec.Command("./run-wine.sh", params...)
-	}
+	fmt.Print("Params: ")
+	fmt.Println("Params: ", params)
+	cmd = exec.Command(execCmd, params...)
 
 	cmd.Env = os.Environ()
 	stdout, err := cmd.StdoutPipe()
@@ -226,13 +221,37 @@ func (c *ccImpl) runApp(params []string) {
 		}
 	}()
 	// cmd.Wait()
+
+	// done := make(chan struct{})
+	// // clean up func
+	// go func() {
+	// 	<-done
+	// 	err := cmd.Process.Kill()
+	// 	cmd.Process.Kill()
+	// 	log.Println("Kill app: ", err)
+	// }()
+	// return done
 }
 
 // done to forcefully stop all processes
 func (c *ccImpl) launchApp(curVideoRTPPort int, curAudioRTPPort int, cfg config.Config, appPath string) chan struct{} {
+	var execCmd string
 	dirName, filename := filepath.Split(appPath)
-	fmt.Println("Running ", appPath, " ", filename)
+	fmt.Println("Running ", dirName, " ", filename)
 	params := []string{}
+	if c.osType == Windows {
+		log.Println("You are running on Windows")
+		execCmd = "powershell"
+		params = append(params, []string{"-ExecutionPolicy", "Bypass", "-F"}...)
+		if cfg.IsVirtualized {
+			params = append(params, "run-sandbox.ps1")
+		} else {
+			params = append(params, "run-app.ps1")
+		}
+	} else {
+		log.Println("You are running on Linux")
+		execCmd = "./run-wine.sh"
+	}
 	if c.osType == Windows {
 		params = append(params, []string{appPath, filename}...)
 	} else {
@@ -248,7 +267,7 @@ func (c *ccImpl) launchApp(curVideoRTPPort int, curAudioRTPPort int, cfg config.
 	params = append(params, []string{strconv.Itoa(cfg.ScreenWidth), strconv.Itoa(cfg.ScreenHeight), appPath}...)
 
 	log.Println("params: ", params)
-	c.runApp(params)
+	c.runApp(execCmd, params)
 	// update flag
 	c.screenWidth = float32(cfg.ScreenWidth)
 	c.screenHeight = float32(cfg.ScreenHeight)

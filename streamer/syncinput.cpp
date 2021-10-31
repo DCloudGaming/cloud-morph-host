@@ -13,8 +13,9 @@ int server; // TODO: Move to local variable
 chrono::_V2::system_clock::time_point last_ping;
 bool done;
 HWND hwnd;
-string winTitle;
+char *winTitle;
 char dockerHost[20];
+string hardcodeIP;
 bool isMac;
 bool isWindows;
 
@@ -61,7 +62,15 @@ int clientConnect()
     }
     else if (isWindows)
     {
-        addr.sin_addr.s_addr = inet_addr("127.0.0.1");
+        if (hardcodeIP != "")
+        {
+            cout << "Running with hardcode IP" << hardcodeIP << endl;
+            addr.sin_addr.s_addr = inet_addr(hardcodeIP.c_str());
+        }
+        else
+        {
+            addr.sin_addr.s_addr = inet_addr("127.0.0.1");
+        }
     }
     else
     {
@@ -89,7 +98,7 @@ void getDesktopResolution(int &width, int &height)
     height = desktop.bottom;
 }
 
-HWND getWindowByTitle(string pattern)
+HWND getWindowByTitle(char *pattern)
 {
     HWND hwnd = NULL;
 
@@ -98,19 +107,15 @@ HWND getWindowByTitle(string pattern)
         hwnd = FindWindowEx(NULL, hwnd, NULL, NULL);
         DWORD dwPID = 0;
         GetWindowThreadProcessId(hwnd, &dwPID);
-        cout << "Searching" << hwnd << endl;
+        cout << "Scanning" << hwnd << endl;
         int len = GetWindowTextLength(hwnd) + 1;
 
         char title[len];
         GetWindowText(hwnd, title, len);
         string st(title);
-        cout << "len " << len << " Title : " << st << endl;
-        if ((pattern == "" || pattern == ".") && st != "Default IME" && st != "") {
-            cout << "Found " << hwnd << endl;
-            return hwnd;
-        }
+        cout << "Title : " << st << endl;
 
-        if (pattern != "" && st.find(pattern) != string::npos)
+        if (st.find(pattern) != string::npos)
         {
             cout << "Found " << hwnd << endl;
             return hwnd;
@@ -276,7 +281,7 @@ Mouse parseMousePayload(string stPos)
 void formatWindow(HWND hwnd)
 {
     SetWindowPos(hwnd, NULL, 0, 0, 800, 600, 0);
-    SetWindowLong(hwnd, GWL_STYLE, 0);
+    // SetWindowLong(hwnd, GWL_STYLE, 0);
     cout << "Window formated" << endl;
 }
 
@@ -339,19 +344,16 @@ void processEvent(string ev, bool isDxGame)
 
 int main(int argc, char *argv[])
 {
-    winTitle = "";
+    winTitle = (char *)"Notepad";
     bool isDxGame = false;
     isMac = false;
     isWindows = false;
-    cout << "args" << endl;
     if (argc > 1)
     {
-        cout << argv[1] << endl;
-        winTitle = string(argv[1]);
+        winTitle = argv[1];
     }
     if (argc > 2)
     {
-        cout << argv[2] << endl;
         if (strcmp(argv[2], "game") == 0)
         {
             isDxGame = true;
@@ -359,8 +361,7 @@ int main(int argc, char *argv[])
     }
     if (argc > 3)
     {
-        cout << argv[3] << endl;
-        if (strcmp(argv[3], "host.docker.internal") == 0)
+        if (strcmp(argv[3], "mac") == 0)
         {
             isMac = true;
             cout << "Running syncinput on Mac";
@@ -371,6 +372,10 @@ int main(int argc, char *argv[])
             cout << "Running syncinput on Windows";
         }
     }
+    if (argc > 4)
+    {
+        hardcodeIP = argv[4];
+    }
 
     server = clientConnect();
 
@@ -379,7 +384,8 @@ int main(int argc, char *argv[])
     getDesktopResolution(screenWidth, screenHeight);
     cout << "width " << screenWidth << " "
          << "height " << screenHeight << endl;
-    cout << "Docker host" << dockerHost << endl;
+    cout << "isMac " << isMac << "isWindows " << isWindows << endl;
+    cout << "harcode IP " << hardcodeIP << endl;
 
     formatWindow(hwnd);
 
