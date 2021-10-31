@@ -9,3 +9,4 @@ rsync -chav --progress "$PARENT_DIR"/scripts "$USER"@"$SERVER_IP":/home/repos/cl
 rsync -chav --progress "$PARENT_DIR"/scripts/FE_nginx "$USER"@"$SERVER_IP":/etc/nginx/sites-enabled/declo.co
 rsync -chav --progress "$PARENT_DIR"/scripts/BE_nginx "$USER"@"$SERVER_IP":/etc/nginx/sites-enabled/api.declo.co
 rsync -chav --progress "$PARENT_DIR"/scripts/declo_backend.service "$USER"@"$SERVER_IP":/etc/systemd/system/declo_backend.service
+#rsync -chav --progress "$USER"@"$SERVER_IP":/home/repos/cloud-morph-host/server/prod.db ../

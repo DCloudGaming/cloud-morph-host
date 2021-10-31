@@ -5,7 +5,11 @@ server {
     server_name declo.co www.declo.co;
 
     location /glance {
-        return 301 http://$server_name$request_uri;
+        return 301 http://www.$server_name$request_uri;
+    }
+
+    location /play {
+        return 301 http://www.$server_name$request_uri;
     }
 
     location / {
@@ -25,7 +29,16 @@ server {
     index index.html index.htm index.nginx-debian.html;
     server_name declo.co www.declo.co;
     location /glance {
-            try_files $uri /index.html;
+        try_files $uri /index.html;
+    }
+    location /play {
+        try_files $uri /index.html;
+    }
+    location /vote {
+        return 301 https://www.$server_name$request_uri;
+    }
+    location ~ ^/$ {
+        return 301 https://www.$server_name$request_uri;
     }
     listen 80;
     listen [::]:80;

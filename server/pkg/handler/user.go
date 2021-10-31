@@ -91,9 +91,11 @@ func getAdminSettings(sharedEnv env.SharedEnv, u model.User, w http.ResponseWrit
 
 	var resp model.GetAdminConfigsResponse
 	resp.HourlyRate = dbAdminConfigs.HourlyRate
-	resp.AllowedApps = []string{}
+	resp.AllowedApps = []model.AllowAppSchema{}
 	for _, allowApp := range allowApps {
-		resp.AllowedApps = append(resp.AllowedApps, allowApp.AppName)
+		resp.AllowedApps = append(resp.AllowedApps, model.AllowAppSchema{
+			AppName: allowApp.AppName, ImageUrl: allowApp.ImageUrl, Publisher: allowApp.Publisher,
+		})
 	}
 
 	write.JSON(resp, w, r)
