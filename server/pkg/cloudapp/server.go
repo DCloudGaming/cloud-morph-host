@@ -21,9 +21,9 @@ type initData struct {
 	CurAppID string `json:"cur_app_id"`
 }
 
-const embedPageIndex string = "/home/repos/cloud-morph-host/server/web/index.html"
-const embedPagePlay string = "/home/repos/cloud-morph-host/server/web/play.html"
-const embedPageRegister string = "/home/repos/cloud-morph-host/server/web/register.html"
+const embedPageIndex string = "./web/index.html"
+const embedPagePlay string = "./web/play.html"
+const embedPageRegister string = "./web/register.html"
 const addr string = ":8080"
 
 type Server struct {
