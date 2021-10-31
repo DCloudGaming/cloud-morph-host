@@ -7,13 +7,13 @@ import (
 )
 
 type sharedEnv struct {
-	db *gorm.DB
-	userRepo model.UserRepo
-	appRepo model.AppRepo
-	hostConfigRepo model.HostConfigRepo
+	db                *gorm.DB
+	userRepo          model.UserRepo
+	appRepo           model.AppRepo
+	hostConfigRepo    model.HostConfigRepo
 	streamSessionRepo model.SessionRepo
-	mode string // DEBUG or PROD
-	defaultAppPath string
+	mode              string // DEBUG or PROD
+	defaultAppPath    string
 }
 
 type SharedEnv interface {
@@ -32,14 +32,14 @@ func New() (SharedEnv, error) {
 	}
 
 	return &sharedEnv{
-		db: db,
-		userRepo: model.NewUserRepo(db),
-		appRepo: model.NewAppRepo(db),
-		hostConfigRepo: model.NewHostConfigRepo(db),
+		db:                db,
+		userRepo:          model.NewUserRepo(db),
+		appRepo:           model.NewAppRepo(db),
+		hostConfigRepo:    model.NewHostConfigRepo(db),
 		streamSessionRepo: model.NewSessionRepo(db),
-		mode: "DEBUG",
+		mode:              "DEBUG",
 		//mode: "PROD",
-		defaultAppPath: "/Users/hieuletrung/Documents/repos/side_projects/cloud-morph-host/streamer/apps/Minesweeper.exe",
+		defaultAppPath: "C:/Users/giong/code/cloud-morph-host/streamer/apps/Minesweeper.exe",
 	}, nil
 }
 
