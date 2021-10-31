@@ -82,17 +82,14 @@ func getDiscoverApps(sharedEnv env.SharedEnv, u model.User, w http.ResponseWrite
 }
 
 func getAllowApps(sharedEnv env.SharedEnv, u model.User, w http.ResponseWriter, r *http.Request) {
-	isAllow := perm.RequireAuthenticated(sharedEnv, w, r)
-	if !isAllow {
-		write.Error(errors.RouteUnauthorized, w, r)
-		return
-	}
-
 	var resp []model.GetAllowAppResponse
 	allowApps, _ := sharedEnv.AppRepo().GetAllowedApps()
 	for _, allowApp := range allowApps {
 		voteCount := sharedEnv.AppRepo().GetVote(allowApp.AppName)
-		isVoted := sharedEnv.AppRepo().IsVoted(allowApp.AppName, u.WalletAddress)
+		var isVoted = false
+		if u.WalletAddress != "" {
+			isVoted = sharedEnv.AppRepo().IsVoted(allowApp.AppName, u.WalletAddress)
+		}
 		resp = append(resp, model.GetAllowAppResponse{
 			AppName: allowApp.AppName, VoteCount: voteCount, Publisher: allowApp.Publisher,
 			ImageUrl: allowApp.ImageUrl, Voted: isVoted,

@@ -42,5 +42,5 @@ type GetAllowAppResponse struct {
 
 type GetAdminConfigsResponse struct {
 	HourlyRate int `json:"hourly_rate"`
-	AllowedApps []string `json:"allowed_apps"`
+	AllowedApps []AllowAppSchema `json:"allowed_apps"`
 }
