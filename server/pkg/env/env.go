@@ -39,7 +39,7 @@ func New() (SharedEnv, error) {
 		streamSessionRepo: model.NewSessionRepo(db),
 		mode:              "DEBUG",
 		//mode: "PROD",
-		defaultAppPath: "C:/Users/giong/code/cloud-morph-host/streamer/apps/Minesweeper.exe",
+		defaultAppPath: "C:/Users/giong/code/cloud-morph-host/streamer/apps/Deverse/Windows/Deverse.exe",
 	}, nil
 }
 

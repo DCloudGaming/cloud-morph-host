@@ -12,9 +12,11 @@ echo "running $path"
 taskkill /FI "ImageName eq $filename" /F
 taskkill /FI "ImageName eq ffmpeg.exe" /F
 taskkill /FI "ImageName eq syncinput.exe" /F
-$app = Start-Process $path -PassThru
+# $app = Start-Process $path -PassThru
+$app = Start-Process "C:\Program Files\Sandboxie\Start.exe" -ArgumentList $path -PassThru
 sleep 2
 $title = ((Get-Process -Id $app.id).mainWindowTitle)
+$title = "[#] Deverse (64-bit Development PCD3D_SM5)  [#]"
 sleep 2
 x86_64-w64-mingw32-g++ $PSScriptRoot\syncinput.cpp -o $PSScriptRoot\syncinput.exe -lws2_32 -lpthread -static
 if ($isSandbox -eq "sandbox") {
