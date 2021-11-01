@@ -119,7 +119,7 @@ ipcMain.on("connectWallet", async function(event, arg) {
 
 ipcMain.on("registerApps", async function(event, arg) {
   console.log(arg);
-  var response = await axios({
+  await axios({
     method: "POST",
     url: "http://localhost:8080/api/apps/registerApp",
     headers: {
@@ -130,6 +130,31 @@ ipcMain.on("registerApps", async function(event, arg) {
       token: arg.token,
       app_paths: arg.appPaths,
       app_names: arg.appNames
+    },
+    withCredentials: true
+  })
+
+  // await axios({
+  //   method: "POST",
+  //   url: "http://localhost:8082/updateToken",
+  //   headers: {
+  //     "Content-Type": "application/json",
+  //   },
+  //   data: {
+  //     token: response.data.token
+  //   },
+  //   withCredentials: true
+  // })
+
+  await axios({
+    method: "POST",
+    url: "http://localhost:8082/registerApp",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    data: {
+      app_names: arg.appNames,
+      app_paths: arg.appPaths
     },
     withCredentials: true
   })
@@ -146,7 +171,7 @@ ipcMain.on("getAllowedApps", async function(event, arg) {
   })
 
   event.returnValue = {
-    AllowedApps: response.data.allowed_apps
+    AllowedApps: response.data.allowed_apps.map(x => x.app_name)
   }
 });
 

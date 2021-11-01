@@ -178,6 +178,36 @@ func (c *ccImpl) GetSSRC() uint32 {
 	return c.ssrc
 }
 
+// done to forcefully stop all processes
+func (c *ccImpl) launchApp(curVideoRTPPort int, curAudioRTPPort int, cfg config.Config, appPath string) chan struct{} {
+	dirName, filename := filepath.Split(appPath)
+	fmt.Println("Running ", appPath, " ", filename)
+	params := []string{}
+	if c.osType == Windows {
+		params = append(params, []string{appPath, filename}...)
+	} else {
+		appTitle := "." // Experiement: auto detection title
+		params = append(params, []string{dirName, filename, appTitle}...)
+	}
+
+	if cfg.HWKey {
+		params = append(params, "game")
+	} else {
+		params = append(params, "app")
+	}
+	params = append(params, []string{strconv.Itoa(cfg.ScreenWidth), strconv.Itoa(cfg.ScreenHeight), appPath}...)
+
+	log.Println("params: ", params)
+	c.runApp(params)
+	// update flag
+	c.screenWidth = float32(cfg.ScreenWidth)
+	c.screenHeight = float32(cfg.ScreenHeight)
+
+	done := make(chan struct{})
+
+	return done
+}
+
 func (c *ccImpl) runApp(params []string) {
 
 	// Launch application using exec
@@ -226,36 +256,6 @@ func (c *ccImpl) runApp(params []string) {
 		}
 	}()
 	// cmd.Wait()
-}
-
-// done to forcefully stop all processes
-func (c *ccImpl) launchApp(curVideoRTPPort int, curAudioRTPPort int, cfg config.Config, appPath string) chan struct{} {
-	dirName, filename := filepath.Split(appPath)
-	fmt.Println("Running ", appPath, " ", filename)
-	params := []string{}
-	if c.osType == Windows {
-		params = append(params, []string{appPath, filename}...)
-	} else {
-		appTitle := "." // Experiement: auto detection title
-		params = append(params, []string{dirName, filename, appTitle}...)
-	}
-
-	if cfg.HWKey {
-		params = append(params, "game")
-	} else {
-		params = append(params, "app")
-	}
-	params = append(params, []string{strconv.Itoa(cfg.ScreenWidth), strconv.Itoa(cfg.ScreenHeight), appPath}...)
-
-	log.Println("params: ", params)
-	c.runApp(params)
-	// update flag
-	c.screenWidth = float32(cfg.ScreenWidth)
-	c.screenHeight = float32(cfg.ScreenHeight)
-
-	done := make(chan struct{})
-
-	return done
 }
 
 // healthCheckVM to maintain connection with Virtual Machine

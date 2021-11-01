@@ -9,4 +9,4 @@ streamer/.idea/
 streamer/vendor/
 node_modules
 out/
-server/test.db
+server/*.db

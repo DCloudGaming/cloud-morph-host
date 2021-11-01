@@ -14,6 +14,28 @@ connectWalletButton.addEventListener("click", async function () {
   localStorage.setItem("Token", response.Token);
 });
 
+const saveButton = document.getElementById("saveButton");
+saveButton.addEventListener("click", async function () {
+  const appRows = Array.from(document.getElementsByClassName("app-row"));
+  const appPaths = [];
+  const appNames = [];
+  appRows.forEach((appRow) => {
+    const {selectedElement, nameElement, pathElement} = getAppRowElements(
+        appRow.id
+    );
+    // TODO: Store checked/unchecked info in backend too.
+    if (selectedElement.checked) {
+      appPaths.push(pathElement.value);
+      appNames.push(nameElement.options[nameElement.selectedIndex].innerText)
+    }
+  });
+  ipcRenderer.sendSync("registerApps", {
+    walletAddress: localStorage.getItem("WalletAddress"),
+    token: localStorage.getItem("Token"),
+    appPaths: appPaths, appNames: appNames
+  })
+});
+
 //ipcRenderer.on will receive the “btnclick-task-finished'” info from main process
 ipcRenderer.on("registerFinished", function (event, param) {
   let appPathText = document.getElementById(param.appPathText);

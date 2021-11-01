@@ -1,0 +1,4 @@
+FROM syncwine
+WORKDIR /winevm/apps
+RUN mkdir ${AppName}
+COPY apps/${AppName} ${AppName}
