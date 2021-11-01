@@ -138,26 +138,5 @@ function prefillAddAppForm() {
   });
 }
 
-function updateApps() {
-  const appRows = Array.from(document.getElementsByClassName("app-row"));
-  const appPaths = [];
-  const appNames = [];
-  appRows.forEach((appRow) => {
-    const {selectedElement, nameElement, pathElement} = getAppRowElements(
-        appRow.id
-    );
-    // TODO: Store checked/unchecked info in backend too.
-    if (selectedElement.checked) {
-      appPaths.push(pathElement.value);
-      appNames.push(nameElement.options[nameElement.selectedIndex].innerText)
-    }
-  });
-  let response = ipcRenderer.sendSync("registerApps", {
-    walletAddress: localStorage.getItem("WalletAddress"),
-    token: localStorage.getItem("Token"),
-    appPaths: appPaths, appNames: appNames
-  })
-}
-
 // Main
 prefillAddAppForm();

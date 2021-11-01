@@ -2,9 +2,14 @@
 package cloudapp
 
 import (
+	"bufio"
 	"encoding/json"
 	"flag"
 	"fmt"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"runtime"
 
 	"github.com/DCloudGaming/cloud-morph-host/pkg/common/config"
 	"github.com/DCloudGaming/cloud-morph-host/pkg/common/cws"
@@ -38,43 +43,73 @@ type StreamerHttp struct {
 	server *Server
 }
 
-type appPacket struct {
-	AppName string `json:"app_name"`
-	AppPath string `json:"app_path"`
+type AppPacket struct {
+	AppNames []string `json:"app_names"`
+	AppPaths []string `json:"app_paths"`
 }
 
 func (params *StreamerHttp) registerAppApi(w http.ResponseWriter, req *http.Request) {
 	fmt.Println("received register package")
 
-	var appBody []appPacket
+	var appBody AppPacket
 	json.NewDecoder(req.Body).Decode(&appBody)
 
-	// TODO: Create .bat file contents here
-	sendRegisterApp(params.server, appBody)
+	/// COPY App Path to docker image here
+	// Note that we don't use VOLUME to mount, to reduce container creation
+	// time during player session start on maximumly leverage copy-on-write on image
+	updateImage(params.server, appBody)
 }
 
-func sendRegisterApp(s *Server, appBody []appPacket) {
-	// Send registrationApp Metadata to server
-	for _, serviceClient := range s.capp.clients {
+func updateImage(s *Server, appBody AppPacket) {
+	var osType string
+	switch runtime.GOOS {
+	case "windows":
+		osType = "Windows"
+	default:
+		osType = "Linux"
+	}
 
-		type registerData struct {
-			Apps []appPacket `json:"apps"`
+	for i, appName := range appBody.AppNames {
+		appPath := appBody.AppPaths[i]
+		var cmd *exec.Cmd
+		if osType == "Linux" {
+			dirName, filename := filepath.Split(appPath)
+			params := []string{}
+			params = append(params, []string{dirName, appName, filename}...)
+			cmd = exec.Command("./run-update-image.sh", params...)
 		}
-
-		data := registerData{
-			// selection of which bat files allowed to use.
-			//AppPaths: []string{"run-notepad.bat", "run-chrome.bat"},
-			Apps: appBody,
-		}
-		registerJsonData, err := json.Marshal(data)
+		cmd.Env = os.Environ()
+		stdout, err := cmd.StdoutPipe()
+		stderr, err2 := cmd.StderrPipe()
 		if err != nil {
-			return
+			log.Fatal(err)
 		}
-
-		serviceClient.ws.Send(cws.WSPacket{
-			Type: "registerApps",
-			Data: string(registerJsonData),
-		}, nil)
+		if err2 != nil {
+			log.Fatal(err2)
+		}
+		cmd.Start()
+		go func() {
+			buf := bufio.NewReader(stdout) // Notice that this is not in a loop
+			for {
+				line, _, _ := buf.ReadLine()
+				if string(line) == "" {
+					continue
+				}
+				log.Println("info log")
+				log.Println(string(line))
+			}
+		}()
+		go func() {
+			buf := bufio.NewReader(stderr) // Notice that this is not in a loop
+			for {
+				line, _, _ := buf.ReadLine()
+				if string(line) == "" {
+					continue
+				}
+				log.Println("err log")
+				log.Println(string(line))
+			}
+		}()
 	}
 }
 
