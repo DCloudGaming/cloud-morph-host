@@ -61,3 +61,7 @@ type UpdateSessionReq struct {
 type HostJwtToken struct {
 	Token string `json:"token"`
 }
+
+type CreateLinkReq struct {
+	WalletAddress string `json:"wallet_address"`
+}

@@ -25,6 +25,8 @@ func AppHandler(
 			getDiscoverApps(*sharedEnv, *u, w, r)
 		} else if head == "getAllowApps" {
 			getAllowApps(*sharedEnv, *u, w, r)
+		} else if head == "queryLink" {
+			queryLink(*sharedEnv, *u, w, r)
 		} else {
 			write.Error(errors.RouteNotFound, w, r)
 		}
@@ -37,6 +39,8 @@ func AppHandler(
 			startSession(*sharedEnv, *u, w, r)
 		} else if head == "updateSession" {
 			updateSession(*sharedEnv, *u, w, r)
+		} else if head == "createLink" {
+			createLink(*sharedEnv, *u, w, r)
 		} else {
 			write.Error(errors.RouteNotFound, w, r)
 		}
@@ -195,6 +199,34 @@ func updateSession(sharedEnv env.SharedEnv, u model.User, w http.ResponseWriter,
 	sharedEnv.StreamSessionRepo().UpdateSession(req)
 }
 
+func queryLink(sharedEnv env.SharedEnv, u model.User, w http.ResponseWriter, r *http.Request) {
+	url := r.URL.Query().Get("url")
 
+	dbRegisteredApps, _ := sharedEnv.AppRepo().QueryLink(url)
+	write.JSON(dbRegisteredApps, w, r)
+}
 
+// This will either create new link, or update old link
+func createLink(sharedEnv env.SharedEnv, u model.User, w http.ResponseWriter, r *http.Request) {
+	decoder := json.NewDecoder(r.Body)
+	var req model.CreateLinkReq
+	err := decoder.Decode(&req)
+	if err != nil || &req == nil {
+		write.Error(errors.NoJSONBody, w, r)
+		return
+	}
 
+	isAllow := perm.RequireOwner(sharedEnv, u.WalletAddress, req.WalletAddress) &&
+		perm.RequireAuthenticated(sharedEnv, w, r)
+	if !isAllow {
+		write.Error(errors.RouteUnauthorized, w, r)
+		return
+	}
+
+	inviteLink, err := sharedEnv.AppRepo().CreateInviteLink(req.WalletAddress)
+	if err != nil {
+		write.Error(errors.BadRequestMethod, w, r)
+		return
+	}
+	write.JSON(inviteLink, w, r)
+}

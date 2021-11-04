@@ -1,6 +1,7 @@
 package model
 
 import (
+	"github.com/DCloudGaming/cloud-morph-host/pkg/utils"
 	"gorm.io/gorm"
 )
 
@@ -8,8 +9,16 @@ type RegisteredApp struct {
 	gorm.Model
 	ID string
 	WalletAddress string `json:"wallet_address"`
+	RequireInvite bool `json:"require_invite"`
 	AppPath string `json:"app_path"`
 	AppName string `json:"app_name"`
+}
+
+type InviteLink struct {
+	gorm.Model
+	ID string
+	WalletAddress string `json:"wallet_address"`
+	Url string `json:"url"`
 }
 
 type AllowedApp struct {
@@ -45,6 +54,8 @@ type AppRepo interface {
 	UpdateVote(appName string, walletAddress string) ()
 	GetVote(appName string) (int)
 	IsVoted(appName string, walletAddress string) (bool)
+	CreateInviteLink(walletAddress string) (InviteLink, error)
+	QueryLink(url string) ([]RegisteredApp, error)
 }
 
 type appRepo struct {
@@ -84,7 +95,7 @@ func (r *appRepo) GetAppByName(appName string, walletAddress string) (Registered
 
 func (r *appRepo) GetAllRegisteredApps() ([]RegisteredApp, error) {
 	var apps []RegisteredApp
-	dbRes := r.db.Find(&apps)
+	dbRes := r.db.Find(&apps, "require_link = ?", false)
 	return apps, dbRes.Error
 }
 
@@ -143,5 +154,25 @@ func (r *appRepo) GetVote(appName string) (int) {
 		return n.Num
 	} else {
 		return 0
+	}
+}
+
+func (r *appRepo) CreateInviteLink(walletAddress string) (InviteLink, error) {
+	r.db.Where("wallet_address = ?", walletAddress).Unscoped().Delete(&InviteLink{})
+	newUrl := utils.GenerateRandomString(10)
+	inviteLink := InviteLink{WalletAddress: walletAddress, Url: newUrl}
+	dbRes := r.db.Create(&inviteLink)
+	return inviteLink, dbRes.Error
+}
+
+func (r *appRepo) QueryLink(url string) ([]RegisteredApp, error) {
+	var inviteLink InviteLink
+	err := r.db.First(&inviteLink, "url = ?", url).Error
+	if err == gorm.ErrRecordNotFound {
+		return nil, err
+	} else {
+		var apps []RegisteredApp
+		dbRes := r.db.Find(&apps, "require_link = ? and wallet_address = ?", true, inviteLink.WalletAddress)
+		return apps, dbRes.Error
 	}
 }
