@@ -1,6 +1,5 @@
 // include the ipc module to communicate with main process.
 const ipcRenderer = require("electron").ipcRenderer;
-
 const apppathText = document.getElementById("apppathText");
 
 const connectWalletButton = document.getElementById("connectWalletButton");
@@ -12,6 +11,8 @@ connectWalletButton.addEventListener("click", async function () {
   // TODO : Save in more secure place. For now can't save in cookie due to bug
   localStorage.setItem("WalletAddress", response.WalletAddress);
   localStorage.setItem("Token", response.Token);
+
+  prefillAddAppForm();
 });
 
 //ipcRenderer.on will receive the “btnclick-task-finished'” info from main process

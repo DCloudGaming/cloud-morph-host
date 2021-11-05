@@ -38,6 +38,7 @@ type RegisterAppReq struct {
 	Token string `json:"token"`
 	AppPaths []string `json:"app_paths"`
 	AppNames []string `json:"app_names"`
+	RequireInvites []bool `json:"require_invites"`
 }
 
 type VoteAppReq struct {

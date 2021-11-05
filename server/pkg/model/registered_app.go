@@ -74,7 +74,10 @@ func (r *appRepo) RegisterBatch(req RegisterAppReq) (int64, error) {
 	var apps = []RegisteredApp{}
 	// TODO: Refactor
 	for i := 0; i < len(req.AppPaths); i++ {
-		apps = append(apps, RegisteredApp{WalletAddress: req.WalletAddress, AppPath: req.AppPaths[i], AppName: req.AppNames[i]})
+		apps = append(apps, RegisteredApp{
+			WalletAddress: req.WalletAddress, AppPath: req.AppPaths[i],
+			AppName: req.AppNames[i], RequireInvite: req.RequireInvites[i],
+		})
 	}
 	dbRes := r.db.Create(&apps)
 
@@ -95,7 +98,7 @@ func (r *appRepo) GetAppByName(appName string, walletAddress string) (Registered
 
 func (r *appRepo) GetAllRegisteredApps() ([]RegisteredApp, error) {
 	var apps []RegisteredApp
-	dbRes := r.db.Find(&apps, "require_link = ?", false)
+	dbRes := r.db.Find(&apps, "require_invite = ?", false)
 	return apps, dbRes.Error
 }
 
@@ -172,7 +175,7 @@ func (r *appRepo) QueryLink(url string) ([]RegisteredApp, error) {
 		return nil, err
 	} else {
 		var apps []RegisteredApp
-		dbRes := r.db.Find(&apps, "require_link = ? and wallet_address = ?", true, inviteLink.WalletAddress)
+		dbRes := r.db.Find(&apps, "require_invite = ? and wallet_address = ?", true, inviteLink.WalletAddress)
 		return apps, dbRes.Error
 	}
 }

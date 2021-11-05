@@ -114,7 +114,6 @@ ipcMain.on("connectWallet", async function(event, arg) {
     WalletAddress: response.data.wallet_address,
     Token: response.data.token
   }
-
 });
 
 ipcMain.on("registerApps", async function(event, arg) {
@@ -129,7 +128,9 @@ ipcMain.on("registerApps", async function(event, arg) {
       wallet_address: arg.walletAddress,
       token: arg.token,
       app_paths: arg.appPaths,
-      app_names: arg.appNames
+      app_names: arg.appNames,
+      // require_invites: Array(arg.appPaths.length).fill(true),
+      require_invites: arg.requireInvites,
     },
     withCredentials: true
   })
@@ -146,7 +147,7 @@ ipcMain.on("getAllowedApps", async function(event, arg) {
   })
 
   event.returnValue = {
-    AllowedApps: response.data.allowed_apps
+    AllowedApps: response.data.allowed_apps.map(x => x.app_name)
   }
 });
 
