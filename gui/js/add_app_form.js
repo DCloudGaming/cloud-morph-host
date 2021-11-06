@@ -160,6 +160,7 @@ function updateApps() {
     token: localStorage.getItem("Token"),
     appPaths: appPaths, appNames: appNames, requireInvites: requireInvites
   })
+  alert(response.Url);
 }
 
 // Main
