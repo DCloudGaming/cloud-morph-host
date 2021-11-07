@@ -9,11 +9,16 @@ import (
 	"github.com/DCloudGaming/cloud-morph-host/pkg/common/config"
 
 	"github.com/DCloudGaming/cloud-morph-host/pkg/cloudapp"
+	"github.com/joho/godotenv"
 )
 
 const configFilePath = "./config.yaml"
 
 func main() {
+	if err := godotenv.Load(); err != nil {
+	  log.Fatal("Error loading .env file")
+	}
+
 	// TODO: Remove Config, GUI will create the setting
 	cfg, err := config.ReadConfig(configFilePath)
 	if err != nil {
