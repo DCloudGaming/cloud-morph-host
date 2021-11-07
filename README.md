@@ -93,3 +93,19 @@ npm start
   - To restart the flow, sign out Metamask by
     - Click on Metamask extension icon
     - Click on Lock
+
+### 6. Set up multi-machines locally to test
+
+- (First time) Install [Ngrok](https://ngrok.com/download) and [localtunnel](https://theboroer.github.io/localtunnel-www/) to get a publicly accessible url that will proxy all requests to locally running webserver. Both of them do the same job, but Ngrok only provides one URL per free account.
+- Run webservers
+- Expose local ports
+  - `./ngrok http 3000`
+  - `lt --port 8080`
+- Update env
+  - Files
+    - cloud-morph-host/gui/.env
+    - cloud-morph-host/streamer/.env
+    - dcloud-webapp/.env
+  - Notes
+    - `PORT` could not be empty for websocket host due to the parsing of `https://github.com/gorilla/websocket`. We can put use `3000` for localtunnel link ot bypass this.
+    - `HOST` should be `http` for testing.
