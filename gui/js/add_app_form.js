@@ -121,18 +121,22 @@ function getAppRowElements(id) {
 
 // Handlers
 function prefillAddAppForm() {
+  const elements = document.getElementsByClassName("app-row");
+  while (elements.length > 0) elements[0].remove();
+
   let getAllowedAppsResponse = ipcRenderer.sendSync("getAllowedApps");
   let allowedApps = getAllowedAppsResponse.AllowedApps;
 
   let getRegisteredAppsResponse = ipcRenderer.sendSync("getRegisteredApps", localStorage.getItem("WalletAddress"));
   let registeredApps = getRegisteredAppsResponse.AppMetas;
 
+  console.log("HERE PREFILL");
   const wrapper = document.getElementById("appRowWrapper");
   registeredApps.forEach((element) => {
     addAppRow(appRowId, allowedApps, chosenName=element.app_name);
     const { selectedElement, nameElement, pathElement, appRow } =
       getAppRowElements(getAppRowId(appRowId-1));
-    selectedElement.checked = true;
+    selectedElement.checked = element.require_invite;
     nameElement.value = appRowId;
     pathElement.value = element.app_path;
   });
@@ -142,21 +146,21 @@ function updateApps() {
   const appRows = Array.from(document.getElementsByClassName("app-row"));
   const appPaths = [];
   const appNames = [];
+  const requireInvites = [];
   appRows.forEach((appRow) => {
     const {selectedElement, nameElement, pathElement} = getAppRowElements(
         appRow.id
     );
-    // TODO: Store checked/unchecked info in backend too.
-    if (selectedElement.checked) {
-      appPaths.push(pathElement.value);
-      appNames.push(nameElement.options[nameElement.selectedIndex].innerText)
-    }
+    appPaths.push(pathElement.value);
+    appNames.push(nameElement.options[nameElement.selectedIndex].innerText)
+    requireInvites.push(selectedElement.checked);
   });
   let response = ipcRenderer.sendSync("registerApps", {
     walletAddress: localStorage.getItem("WalletAddress"),
     token: localStorage.getItem("Token"),
-    appPaths: appPaths, appNames: appNames
+    appPaths: appPaths, appNames: appNames, requireInvites: requireInvites
   })
+  alert(response.Url);
 }
 
 // Main

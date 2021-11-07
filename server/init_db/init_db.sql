@@ -4,6 +4,7 @@ drop table admin_configs;
 drop table allowed_apps;
 drop table app_votes;
 drop table registered_apps;
+drop table invite_links;
 drop table stream_sessions;
 drop table smart_otps;
 
@@ -64,10 +65,20 @@ CREATE TABLE IF NOT EXISTS registered_apps (
     wallet_address TEXT,
     app_path TEXT,
     app_name TEXT,
+    require_invite BOOLEAN,
     created_at TIMESTAMP,
     updated_at TIMESTAMP,
     deleted_at TIMESTAMP,
     PRIMARY KEY (wallet_address, app_name)
+);
+
+CREATE TABLE IF NOT EXISTS invite_links (
+    id INTEGER,
+    wallet_address TEXT PRIMARY KEY,
+    url TEXT,
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP,
+    deleted_at TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS stream_sessions (
