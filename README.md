@@ -109,3 +109,10 @@ npm start
   - Notes
     - `PORT` could not be empty for websocket host due to the parsing of `https://github.com/gorilla/websocket`. We can put use `3000` for localtunnel link ot bypass this.
     - `HOST` should be `http` for testing.
+
+#### Sample env
+```
+HOST = localhost:8080
+PROTOCOL = http
+```
+
