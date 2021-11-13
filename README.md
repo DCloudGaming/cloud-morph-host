@@ -111,8 +111,14 @@ npm start
     - `HOST` should be `http` for testing.
 
 #### Sample env
+**gui and streamer**
 ```
 HOST = localhost:8080
 PROTOCOL = http
+```
+**dcloud-webapp**
+```
+REACT_APP_HOST = localhost:8080
+REACT_APP_PROTOCOL = http
 ```
 
