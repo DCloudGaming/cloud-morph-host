@@ -10,3 +10,4 @@ streamer/vendor/
 node_modules
 out/
 server/test.db
+.env

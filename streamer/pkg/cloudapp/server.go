@@ -11,6 +11,7 @@ import (
 
 	//"github.com/gorilla/mux"
 	"log"
+	"os"
 	"net/http"
 	"net/url"
 
@@ -24,7 +25,7 @@ type initData struct {
 
 const addr string = ":8082"
 
-var signallingServerAddr = flag.String("addr", "localhost:8080", "http service address")
+var signallingServerAddr = flag.String("addr", os.Getenv("HOST"), "http service address")
 
 type Server struct {
 	appID      string

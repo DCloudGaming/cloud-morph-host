@@ -4,6 +4,7 @@ import (
 	"github.com/DCloudGaming/cloud-morph-host/pkg/model"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 type sharedEnv struct {
@@ -26,7 +27,9 @@ type SharedEnv interface {
 }
 
 func New() (SharedEnv, error) {
-	db, err := gorm.Open(sqlite.Open("./test.db"), &gorm.Config{})
+	db, err := gorm.Open(sqlite.Open("./test.db"), &gorm.Config{
+		Logger: logger.Default.LogMode(logger.Info),
+	})
 	if err != nil {
 		panic("failed to connect database")
 	}
