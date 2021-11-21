@@ -42,6 +42,7 @@ func New() (SharedEnv, error) {
 		streamSessionRepo: model.NewSessionRepo(db),
 		mode:              "DEBUG",
 		//mode: "PROD",
+		// TODO: Config per machine
 		defaultAppPath: "C:/Users/giong/code/cloud-morph-host/streamer/apps/Minesweeper.exe",
 	}, nil
 }

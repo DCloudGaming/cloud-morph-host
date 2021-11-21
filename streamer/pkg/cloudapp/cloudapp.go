@@ -184,8 +184,6 @@ func (c *ccImpl) runApp(execCmd string, params []string) {
 	var cmd *exec.Cmd
 	//params = append([]string{"/C", "run-app.bat"}, params...)
 	// params[0] = "/Users/hieuletrung/Documents/repos/side_projects/temp-docker"
-	fmt.Print("Params: ")
-	fmt.Println("Params: ", params)
 	cmd = exec.Command(execCmd, params...)
 
 	cmd.Env = os.Environ()

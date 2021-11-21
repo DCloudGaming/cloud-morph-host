@@ -5,13 +5,13 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"os"
 
 	"github.com/DCloudGaming/cloud-morph-host/pkg/common/config"
 	"github.com/DCloudGaming/cloud-morph-host/pkg/common/cws"
 
 	//"github.com/gorilla/mux"
 	"log"
-	"os"
 	"net/http"
 	"net/url"
 
@@ -25,14 +25,13 @@ type initData struct {
 
 const addr string = ":8082"
 
-var signallingServerAddr = flag.String("addr", os.Getenv("HOST"), "http service address")
-
 type Server struct {
-	appID      string
-	httpServer *http.Server
-	wsClients  map[string]*cws.Client
-	capp       *Service
-	token      string
+	appID            string
+	httpServer       *http.Server
+	wsClients        map[string]*cws.Client
+	capp             *Service
+	signalServerAddr string
+	token            string
 }
 
 type StreamerHttp struct {
@@ -124,9 +123,11 @@ func NewServerWithHTTPServerMux(cfg config.Config) *Server {
 	//	Handler: svmux,
 	//}
 	server := &Server{
-		capp: NewCloudService(cfg),
+		capp:             NewCloudService(cfg),
+		signalServerAddr: "localhost:8080", // will be overriden by flag
 		//httpServer: httpServer,
 	}
+	flag.StringVar(&server.signalServerAddr, "addr", os.Getenv("HOST"), "http service address")
 
 	params := &StreamerHttp{server: server}
 	http.HandleFunc("/registerApp", params.registerAppApi)
@@ -134,7 +135,6 @@ func NewServerWithHTTPServerMux(cfg config.Config) *Server {
 	//.Host("http://localhost:8081").Methods("GET").Schemes("http")
 
 	go http.ListenAndServe(":8082", nil)
-
 	return server
 }
 
@@ -162,7 +162,7 @@ func (s *Server) NotifySignallingServer() {
 	flag.Parse()
 	log.SetFlags(0)
 
-	u := url.URL{Scheme: "ws", Host: *signallingServerAddr, Path: "/host"}
+	u := url.URL{Scheme: "ws", Host: s.signalServerAddr, Path: "/host"}
 	log.Printf("connecting to %s", u.String())
 
 	c, _, err := websocket.DefaultDialer.Dial(u.String(), nil)

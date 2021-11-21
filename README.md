@@ -110,6 +110,10 @@ npm start
     - `PORT` could not be empty for websocket host due to the parsing of `https://github.com/gorilla/websocket`. We can put use `3000` for localtunnel link ot bypass this.
     - `HOST` should be `http` for testing.
 
+#### Run with sandbox
+
+Setup Sandbox in Windows by
+
 #### Sample env
 **gui and streamer**
 ```
@@ -121,4 +125,7 @@ PROTOCOL = http
 REACT_APP_HOST = localhost:8080
 REACT_APP_PROTOCOL = http
 ```
-
+#### Running in Sandbox (Recommended)
+To setup Window Sandbox, Turn on Virtualization in Bios and Enable Windows Sandbox Feature. Tutorial https://techgenix.com/install-configure-and-use-windows-sandbox/
+1. Using `setup-sandbox.ps1` to download and install necessary packages (FFMPEG) in sandbox image (`winvm/pkg`)
+2. `go run server.go`
