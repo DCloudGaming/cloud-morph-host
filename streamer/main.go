@@ -21,6 +21,7 @@ func main() {
 	}
 
 	http.Handle("/assets/", http.StripPrefix("/assets", http.FileServer(http.Dir("./assets"))))
+	cfg.IsVirtualized = true
 	server := cloudapp.NewServer(cfg)
 	server.NotifySignallingServer()
 	//server.Handle()

@@ -253,7 +253,7 @@ func (c *ccImpl) launchApp(curVideoRTPPort int, curAudioRTPPort int, cfg config.
 		execCmd = "./run-wine.sh"
 	}
 	if c.osType == Windows {
-		params = append(params, []string{appPath, filename}...)
+		params = append(params, []string{dirName, filename, appPath}...)
 	} else {
 		appTitle := "." // Experiement: auto detection title
 		params = append(params, []string{dirName, filename, appTitle}...)

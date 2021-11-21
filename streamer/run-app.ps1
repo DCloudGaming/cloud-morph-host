@@ -1,7 +1,7 @@
-$path = $args[0]
+$path = $args[2]
 $filename = $args[1]
-$isSandbox = $args[2]
-$hostIP = $args[3]
+$isSandbox = $args[3]
+$hostIP = $args[4]
 
 if ([string]::IsNullOrEmpty($hostIP)) {
     $hostIP = '127.0.0.1';
