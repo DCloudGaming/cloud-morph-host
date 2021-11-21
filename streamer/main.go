@@ -16,7 +16,7 @@ const configFilePath = "./config.yaml"
 
 func main() {
 	if err := godotenv.Load(); err != nil {
-	  log.Fatal("Error loading .env file")
+		log.Fatal("Error loading .env file")
 	}
 
 	// TODO: Remove Config, GUI will create the setting
@@ -26,6 +26,8 @@ func main() {
 	}
 
 	http.Handle("/assets/", http.StripPrefix("/assets", http.FileServer(http.Dir("./assets"))))
+	// TODO: Configurable
+	cfg.IsVirtualized = true
 	server := cloudapp.NewServer(cfg)
 	server.NotifySignallingServer()
 	//server.Handle()

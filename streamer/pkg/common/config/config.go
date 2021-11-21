@@ -17,6 +17,8 @@ type Config struct {
 	IsWindowMode *bool  `yaml:"isWindowMode"`
 	// Frontend plugin
 	PageTitle string `yaml:"pageTitle"`
+	// Is Virtualized
+	IsVirtualized bool
 }
 
 func ReadConfig(path string) (Config, error) {

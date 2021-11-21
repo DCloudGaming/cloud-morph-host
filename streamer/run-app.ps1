@@ -1,23 +1,42 @@
-# set /P PATH=%PATH%
-$path = $args[0]
+# 0: absolute (path + filename) on host to folder
+# 1: filename
+# 2: relative dir path on host
+# 3: sandbox flag 
+# 4: local Ethernet IP (Will be different if it's in virtual network like sandbox/Docker)
+
+$path = $args[2]
 $filename = $args[1]
-# TODO dont need filename, use Split-Path $outputPath -leaf
-echo $path
-echo $filename
+$isSandbox = $args[3]
+$hostIP = $args[4]
+echo "Params: path=$args[0] appfile=$args[1] isSandbox=$args[2] hostIP=$args[3] "
+
+if ([string]::IsNullOrEmpty($hostIP)) {
+    $hostIP = '127.0.0.1';
+}
+# Split-Path $outputPath -leaf
+echo "running $path"
+
 taskkill /FI "ImageName eq $filename" /F
 taskkill /FI "ImageName eq ffmpeg.exe" /F
 taskkill /FI "ImageName eq syncinput.exe" /F
 $app = Start-Process $path -PassThru
-$app.id
 sleep 2
-$title = (Get-Process -Id $app.id).mainWindowTitle
-# START /B %1
-# Investigate running FFMPEG in background
+$title = ((Get-Process -Id $app.id).mainWindowTitle)
 sleep 2
-echo "App Title: "$title
-Start-Process ffmpeg -PassThru -ArgumentList "-f gdigrab -framerate 30 -i title=`"$title`" -pix_fmt yuv420p -vf scale=1280:-2 -c:v libvpx -f rtp rtp://127.0.0.2:5006"
-echo "Done"
-sleep 2
-echo "Run Syncinput"
-x86_64-w64-mingw32-g++ .\syncinput.cpp -o .\syncinput.exe -lws2_32 -lpthread -static
-Start-Process .\syncinput.exe -PassThru -ArgumentList "$title", ".", "windows"
+x86_64-w64-mingw32-g++ $PSScriptRoot\syncinput.cpp -o $PSScriptRoot\syncinput.exe -lws2_32 -lpthread -static
+if ($isSandbox -eq "sandbox") {
+    Start-Process $PSScriptRoot/winvm/pkg/ffmpeg/ffmpeg.exe -PassThru -NoNewWindow -ArgumentList "-f gdigrab -framerate 30 -i title=`"$title`" -pix_fmt yuv420p -vf scale=1280:-2 -tune zerolatency -c:v libx264 -f rtp rtp://$hostIP`:5006"
+    sleep 2
+    while ($true) {
+        Start-Process -Wait $PSScriptRoot/syncinput.exe -PassThru -NoNewWindow -ArgumentList "$title", ".", "windows", $hostIP
+    }
+    # Restart on failure. Using service to restart on failure, not working now
+    # $syncinput = New-Service -Name "Syncinput" -BinaryPathName "$PSScriptRoot\syncinput.exe $title . windows $hostIP"
+    # sc failure Syncinput reset= 30 actions= restart/5000
+    # $syncinput.Start()
+}
+else {
+    Start-Process ffmpeg -PassThru -ArgumentList "-f gdigrab -framerate 30 -i title=`"$title`" -pix_fmt yuv420p -vf scale=1280:-2 -tune zerolatency -c:v libx264 -f rtp rtp://127.0.0.1:5006"
+    sleep 2
+    Start-Process -PassThru $PSScriptRoot/syncinput.exe -ArgumentList "$title", ".", "windows"
+}
