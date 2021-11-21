@@ -1,7 +1,14 @@
+# 0: absolute (path + filename) on host to folder
+# 1: filename
+# 2: relative dir path on host
+# 3: sandbox flag 
+# 4: local Ethernet IP (Will be different if it's in virtual network like sandbox/Docker)
+
 $path = $args[2]
 $filename = $args[1]
 $isSandbox = $args[3]
 $hostIP = $args[4]
+echo "Params: path=$args[0] appfile=$args[1] isSandbox=$args[2] hostIP=$args[3] "
 
 if ([string]::IsNullOrEmpty($hostIP)) {
     $hostIP = '127.0.0.1';

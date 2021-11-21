@@ -1,6 +1,9 @@
-# 0 is absolute (path + filename) on host to folder
-# 1 is filename
-# 2 is relative dir path on host
+# 0: absolute (path + filename) on host to folder
+# 1: filename
+# 2: relative dir path on host
+# 3: sandbox flag 
+# 4: local Ethernet IP (Will be different if it's in virtual network like sandbox/Docker)
+
 $template = @'
 <Configuration>
     <vGPU>Enable</vGPU>
@@ -16,7 +19,7 @@ $template = @'
         </MappedFolder>
     </MappedFolders>
     <LogonCommand>
-        <Command>C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe -ExecutionPolicy Bypass -F C:\Users\declo\run-app.ps1 declo\apps {1} sandbox {3}</Command>
+        <Command>C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe -ExecutionPolicy Bypass -F C:\Users\declo\run-app.ps1 C:\Users\declo\apps\ {1} C:\Users\declo\apps\{1} sandbox {3}</Command>
     </LogonCommand>
 </Configuration>
 '@
