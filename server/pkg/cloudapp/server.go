@@ -8,8 +8,9 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"os"
 	"time"
-	//"github.com/rs/cors"
+	// "github.com/rs/cors"
 	"github.com/DCloudGaming/cloud-morph-host/pkg/common/config"
 	"github.com/DCloudGaming/cloud-morph-host/pkg/common/cws"
 	"github.com/DCloudGaming/cloud-morph-host/pkg/env"
@@ -24,7 +25,7 @@ type initData struct {
 const embedPageIndex string = "./web/index.html"
 const embedPagePlay string = "./web/play.html"
 const embedPageRegister string = "./web/register.html"
-const addr string = ":8080"
+var addr string
 
 type Server struct {
 	appID      string
@@ -86,6 +87,7 @@ func NewServerWithHTTPServerMux(cfg config.Config, r *mux.Router, svmux *http.Se
 	r.HandleFunc("/client", server.Client)
 	r.HandleFunc("/host", server.Host)
 
+	addr = ":" + os.Getenv("PORT")
 	httpServer := &http.Server{
 		Addr:         addr,
 		ReadTimeout:  5 * time.Second,

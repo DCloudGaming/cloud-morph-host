@@ -121,13 +121,17 @@ function getAppRowElements(id) {
 
 // Handlers
 function prefillAddAppForm() {
+  console.log("Start prefilling add app form")
   const elements = document.getElementsByClassName("app-row");
   while (elements.length > 0) elements[0].remove();
 
   let getAllowedAppsResponse = ipcRenderer.sendSync("getAllowedApps");
   let allowedApps = getAllowedAppsResponse.AllowedApps;
 
-  let getRegisteredAppsResponse = ipcRenderer.sendSync("getRegisteredApps", localStorage.getItem("WalletAddress"));
+  let getRegisteredAppsResponse = ipcRenderer.sendSync("getRegisteredApps",  {
+    wallet_address: localStorage.getItem("WalletAddress"), 
+    token: localStorage.getItem("Token")
+  });
   let registeredApps = getRegisteredAppsResponse.AppMetas;
 
   console.log("HERE PREFILL");
@@ -160,7 +164,7 @@ function updateApps() {
     token: localStorage.getItem("Token"),
     appPaths: appPaths, appNames: appNames, requireInvites: requireInvites
   })
-  alert(response.Url);
+  alert("Private sharable link " + response.Url);
 }
 
 // Main

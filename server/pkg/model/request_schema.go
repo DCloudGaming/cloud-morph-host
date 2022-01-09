@@ -65,4 +65,5 @@ type HostJwtToken struct {
 
 type CreateLinkReq struct {
 	WalletAddress string `json:"wallet_address"`
+	Token string `json:"token"`
 }

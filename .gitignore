@@ -7,6 +7,9 @@ server/vendor/
 streamer/.DS_Store
 streamer/.idea/
 streamer/vendor/
+streamer/.env
+gui/.env
+gui/package-lock.json
 node_modules
 out/
 server/test.db

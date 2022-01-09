@@ -117,15 +117,38 @@ Setup Sandbox in Windows by
 #### Sample env
 **gui and streamer**
 ```
-HOST = localhost:8080
+SIGNAL_HOST = localhost:8080
+SIGNAL_PROTOCOL = http
+HOST = localhost:8082
+PORT = 8082
 PROTOCOL = http
+
+```
+**server**
+```
+HOST = localhost:8080
+PORT = 8080
+PROTOCOL = http
+DB = test.db
 ```
 **dcloud-webapp**
 ```
-REACT_APP_HOST = localhost:8080
-REACT_APP_PROTOCOL = http
+HOST = localhost:8080
+PROTOCOL = http
+STREAMER_HOST = localhost:8082
+STREAMER_PROTOCOL = http
 ```
 #### Running in Sandbox (Recommended)
 To setup Window Sandbox, Turn on Virtualization in Bios and Enable Windows Sandbox Feature. Tutorial https://techgenix.com/install-configure-and-use-windows-sandbox/
 1. Using `setup-sandbox.ps1` to download and install necessary packages (FFMPEG) in sandbox image (`winvm/pkg`)
 2. `go run server.go`
+
+
+#### Temporary
+Current order of actions must be like this (later we will make it more robust so no need to enforce this sequence)
+1/ start server
+2/ start streamer
+3/ start gui
+4/ start web, get OTP
+5/ gui verifyOTP
+6/ web start playing

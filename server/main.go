@@ -10,6 +10,7 @@ import (
 
 	"github.com/DCloudGaming/cloud-morph-host/pkg/cloudapp"
 	"github.com/DCloudGaming/cloud-morph-host/pkg/common/config"
+	"github.com/joho/godotenv"
 )
 
 const configFilePath = "./config.yaml"
@@ -42,6 +43,10 @@ func monitor() {
 }
 
 func main() {
+	if err := godotenv.Load(); err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
 	cfg, err := config.ReadConfig(configFilePath)
 	if err != nil {
 		panic(err)

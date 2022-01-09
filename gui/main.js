@@ -102,9 +102,12 @@ ipcMain.on("connectWallet", async function (event, arg) {
     withCredentials: true,
   });
 
+  console.log("verifyOTP");
+  console.log(response.data);
+
   await axios({
     method: "POST",
-    url: "http://localhost:8082/updateToken",
+    url: `${process.env.STREAMER_PROTOCOL}://${process.env.STREAMER_HOST}/updateToken`,
     headers: {
       "Content-Type": "application/json",
     },
@@ -114,7 +117,8 @@ ipcMain.on("connectWallet", async function (event, arg) {
     withCredentials: true,
   });
 
-  console.log(response.data);
+  console.log("updateToken");
+
   event.returnValue = {
     WalletAddress: response.data.wallet_address,
     Token: response.data.token,
@@ -140,6 +144,8 @@ ipcMain.on("registerApps", async function (event, arg) {
     withCredentials: true,
   });
 
+  console.log("registerApp");
+
   var response = await axios({
     method: "POST",
     url:
@@ -149,9 +155,14 @@ ipcMain.on("registerApps", async function (event, arg) {
     },
     data: {
       wallet_address: arg.walletAddress,
+      token: arg.token,
     },
     withCredentials: true,
   });
+
+  console.log("createLink");
+  console.log(response.data);
+
   event.returnValue = {
     Url: "localhost:3000/streams/" + response.data.url,
   };
@@ -168,19 +179,27 @@ ipcMain.on("getAllowedApps", async function (event, arg) {
     },
   });
 
+  console.log("getAllowedApps");
+  console.log(response.data);
+
   event.returnValue = {
     AllowedApps: response.data.allowed_apps.map((x) => x.app_name),
   };
 });
 
 ipcMain.on("getRegisteredApps", async function (event, arg) {
+  console.log(arg);
   var response = await axios({
     method: "GET",
-    url: `${process.env.PROTOCOL}://${process.env.HOST}/api/apps?wallet_address=${arg}`,
+    url: `${process.env.PROTOCOL}://${process.env.HOST}/api/apps?wallet_address=${arg.wallet_address}&token=${arg.token}`,
     headers: {
       "Content-Type": "application/json",
     },
+    withCredentials: true,
   });
+
+  console.log("getRegisteredApps");
+  console.log(response.data);
 
   event.returnValue = {
     AppMetas: response.data,

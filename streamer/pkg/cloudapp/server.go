@@ -23,7 +23,7 @@ type initData struct {
 	CurAppID string `json:"cur_app_id"`
 }
 
-const addr string = ":8082"
+var addr string
 
 type Server struct {
 	appID            string
@@ -111,6 +111,7 @@ func NewServer(cfg config.Config) *Server {
 }
 
 func NewServerWithHTTPServerMux(cfg config.Config) *Server {
+	addr = ":" + os.Getenv("PORT")
 	//r := mux.NewRouter()
 	//svmux := &http.ServeMux{}
 	//svmux.Handle("/", r)
@@ -124,10 +125,10 @@ func NewServerWithHTTPServerMux(cfg config.Config) *Server {
 	//}
 	server := &Server{
 		capp:             NewCloudService(cfg),
-		signalServerAddr: "localhost:8080", // Default, will be overriden by flag
+		signalServerAddr: os.Getenv("SIGNAL_HOST"), // Default, will be overriden by flag
 		//httpServer: httpServer,
 	}
-	flag.StringVar(&server.signalServerAddr, "addr", os.Getenv("HOST"), "http service address")
+	flag.StringVar(&server.signalServerAddr, "addr", os.Getenv("SIGNAL_HOST"), "http service address")
 
 	params := &StreamerHttp{server: server}
 	http.HandleFunc("/registerApp", params.registerAppApi)

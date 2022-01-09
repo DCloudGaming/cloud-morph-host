@@ -14,6 +14,11 @@ const (
 	GetHostAppsType = 2
 )
 
+func RequireAuthenticatedGui(token string) (bool) {
+	hostU, _ := jwt.DecodeUser(token)
+	return hostU != nil && hostU.WalletAddress != ""
+}
+
 func RequireAuthenticated(sharedEnv env.SharedEnv, w http.ResponseWriter, r *http.Request) (bool) {
 	if (sharedEnv.Mode() == "DEBUG") {
 		return true

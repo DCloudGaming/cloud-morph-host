@@ -7,6 +7,7 @@ connectWalletButton.addEventListener("click", async function () {
   let otp = document.getElementById('walletOTP').value;
   let response = ipcRenderer.sendSync("connectWallet", otp);
   document.getElementById("walletAddressValue").innerText = "Wallet Address: " + response.WalletAddress
+  console.log("Finish verify OTP");
 
   // TODO : Save in more secure place. For now can't save in cookie due to bug
   localStorage.setItem("WalletAddress", response.WalletAddress);

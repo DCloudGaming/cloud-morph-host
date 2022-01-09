@@ -51,8 +51,9 @@ func AppHandler(
 
 func getHostApps(sharedEnv env.SharedEnv, u model.User, w http.ResponseWriter, r *http.Request) {
 	walletAddress := r.URL.Query().Get("wallet_address")
+	token := r.URL.Query().Get("token")
 
-	isAllow := perm.RequireAuthenticated(sharedEnv, w, r)
+	isAllow := perm.RequireAuthenticated(sharedEnv, w, r) || perm.RequireAuthenticatedGui(token)
 	if !isAllow {
 		write.Error(errors.RouteUnauthorized, w, r)
 		return
@@ -234,8 +235,9 @@ func createLink(sharedEnv env.SharedEnv, u model.User, w http.ResponseWriter, r 
 		return
 	}
 
-	isAllow := perm.RequireOwner(sharedEnv, u.WalletAddress, req.WalletAddress) &&
-		perm.RequireAuthenticated(sharedEnv, w, r)
+	hostU2, _ := jwt.DecodeUser(req.Token)
+
+	isAllow := perm.RequireOwner(sharedEnv, hostU2.WalletAddress, req.WalletAddress) && perm.RequireAuthenticatedGui(req.Token)
 	if !isAllow {
 		write.Error(errors.RouteUnauthorized, w, r)
 		return

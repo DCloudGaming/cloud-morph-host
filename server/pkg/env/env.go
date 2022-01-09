@@ -5,6 +5,7 @@ import (
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
+	"os"
 )
 
 type sharedEnv struct {
@@ -27,7 +28,7 @@ type SharedEnv interface {
 }
 
 func New() (SharedEnv, error) {
-	db, err := gorm.Open(sqlite.Open("./test.db"), &gorm.Config{
+	db, err := gorm.Open(sqlite.Open("./" + os.Getenv("DB")), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Info),
 	})
 	if err != nil {
@@ -40,8 +41,8 @@ func New() (SharedEnv, error) {
 		appRepo:           model.NewAppRepo(db),
 		hostConfigRepo:    model.NewHostConfigRepo(db),
 		streamSessionRepo: model.NewSessionRepo(db),
-		mode:              "DEBUG",
-		//mode: "PROD",
+		// mode:              "DEBUG",
+		mode: "PROD",
 		// TODO: put in config / env
 		defaultAppPath: "/Users/hieuletrung/Documents/repos/side_projects/cloud-morph-host/streamer/apps/Minesweeper.exe",
 		// defaultAppPath: "C:/Users/giong/code/cloud-morph-host/streamer/apps/Minesweeper.exe",

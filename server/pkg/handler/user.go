@@ -247,6 +247,7 @@ func verifyOTP(sharedEnv env.SharedEnv, w http.ResponseWriter, r *http.Request) 
 		var resp model.VerifyOTPResponse
 		resp.WalletAddress = dbUser.WalletAddress
 		resp.Token = jwt.EncodeUser(dbUser)
+		jwt.WriteUserCookie(w, dbUser)
 		write.JSON(resp, w, r)
 	}
 }
