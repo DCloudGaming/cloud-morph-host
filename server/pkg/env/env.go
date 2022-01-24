@@ -1,6 +1,10 @@
 package env
 
 import (
+	"log"
+	"os"
+	"path/filepath"
+
 	"github.com/DCloudGaming/cloud-morph-host/pkg/model"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -34,6 +38,16 @@ func New() (SharedEnv, error) {
 		panic("failed to connect database")
 	}
 
+	serverPath, err := os.Getwd()
+	if err != nil {
+		log.Println(err)
+	}
+	dirPath := filepath.Dir(serverPath)
+	if err != nil {
+		log.Println(err)
+	}
+	log.Println("Current app Path", dirPath)
+
 	return &sharedEnv{
 		db:                db,
 		userRepo:          model.NewUserRepo(db),
@@ -43,8 +57,9 @@ func New() (SharedEnv, error) {
 		mode:              "DEBUG",
 		//mode: "PROD",
 		// TODO: put in config / env
-		defaultAppPath: "/Users/hieuletrung/Documents/repos/side_projects/cloud-morph-host/streamer/apps/Minesweeper.exe",
+		// defaultAppPath: "/Users/hieuletrung/Documents/repos/side_projects/cloud-morph-host/streamer/apps/Minesweeper.exe",
 		// defaultAppPath: "C:/Users/giong/code/cloud-morph-host/streamer/apps/Minesweeper.exe",
+		defaultAppPath: dirPath + "/streamer/apps/Minesweeper.exe",
 	}, nil
 }
 

@@ -55,7 +55,6 @@ func main() {
 			log.Fatal(err)
 		}
 	}()
-
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt)
 	select {

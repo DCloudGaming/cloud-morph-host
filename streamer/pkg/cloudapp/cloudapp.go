@@ -242,14 +242,17 @@ func (c *ccImpl) launchApp(curVideoRTPPort int, curAudioRTPPort int, cfg config.
 		execCmd = "powershell"
 		params = append(params, []string{"-ExecutionPolicy", "Bypass", "-F"}...)
 		if cfg.IsVirtualized {
+			log.Println("Running in Sandbox")
 			params = append(params, "run-sandbox.ps1")
 		} else {
+			log.Println("Running in Native")
 			params = append(params, "run-app.ps1")
 		}
 	} else {
 		log.Println("You are running on Linux")
 		execCmd = "./run-wine.sh"
 	}
+	log.Printf("Running %s %s %s", dirName, filename, appPath)
 	if c.osType == Windows {
 		params = append(params, []string{dirName, filename, appPath}...)
 	} else {
